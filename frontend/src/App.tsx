@@ -160,14 +160,14 @@ export const App: React.FC = () => {
   };
 
   const navItems = [
-    { id: 'cards', label: 'Platform cards', count: urls.length },
-    { id: 'overview', label: 'Overview' },
-    { id: 'identities', label: 'Identities & aliases', count: identities.length },
-    { id: 'evidence', label: 'Findings', count: findings.length },
-    { id: 'graph', label: 'Entity graph' },
-    { id: 'timeline', label: 'Timeline', count: timeline.length },
-    { id: 'sources', label: 'Raw sources' },
-    { id: 'resources', label: 'Telemetry' },
+    { id: 'cards', label: 'Platform Cards', desc: 'Social & developer profile cards' },
+    { id: 'identities', label: 'Identities & Aliases', count: identities.length, desc: 'Subject identities & linked handles' },
+    { id: 'evidence', label: 'Verified Findings', count: findings.length, desc: 'Extracted facts & citations' },
+    { id: 'graph', label: 'Relationship Graph', desc: 'Interactive entity link map' },
+    { id: 'timeline', label: 'Timeline', count: timeline.length, desc: 'Chronological footprint events' },
+    { id: 'sources', label: 'All Discovered URLs', count: urls.length, desc: 'Raw web index' },
+    { id: 'overview', label: 'Case Brief', desc: 'Target briefing & seeds' },
+    { id: 'resources', label: 'Telemetry', desc: 'HTTP & token quotas' },
   ];
 
   return (
@@ -251,6 +251,8 @@ export const App: React.FC = () => {
           <div className="fade-in" style={{ padding: '28px 32px' }}>
             {activeTab === 'cards' && (
               <IntelligenceCards
+                investigation={currentInv}
+                identities={identities}
                 urls={urls}
                 onPivot={handlePivot}
                 isPivoting={isPivoting}
