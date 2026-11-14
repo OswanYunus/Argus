@@ -348,15 +348,30 @@ class PlatformProbeEngine:
                 if resp.status_code == 200:
                     data = resp.json()
                     if isinstance(data, dict) and data.get("player_id"):
+                        country_url = data.get("country", "")
+                        country_code = country_url.rstrip("/").split("/")[-1].upper() if country_url else ""
+                        iso_countries = {
+                            "KE": "Kenya", "US": "United States", "GB": "United Kingdom", "CA": "Canada",
+                            "DE": "Germany", "FR": "France", "IN": "India", "NG": "Nigeria", "ZA": "South Africa",
+                            "AU": "Australia", "BR": "Brazil", "TZ": "Tanzania", "UG": "Uganda", "AE": "UAE",
+                        }
+                        country_display = f"{iso_countries.get(country_code, country_code)}" if country_code else ""
+                        location_str = f"Country: {country_display} ({country_code})" if country_display else (data.get("location") or "Location: Public Profile")
+                        
                         return ProbeFinding(
                             platform_name=platform.name,
                             category=platform.category,
                             profile_url=profile_url,
                             username=username,
                             status_code=resp.status_code,
-                            raw_evidence=f"Chess.com Player ID: {data.get('player_id')}, Name: {data.get('name')}, Status: {data.get('status')}",
-                            extracted_metadata=data,
-                            confidence=0.96,
+                            raw_evidence=f"Location: {location_str} | Player ID: {data.get('player_id')} | Status: {data.get('status', 'Active')}",
+                            extracted_metadata={
+                                **data,
+                                "country_name": country_display,
+                                "country_code": country_code,
+                                "location": location_str,
+                            },
+                            confidence=0.98,
                         )
 
             # 6. Telegram Profile Check

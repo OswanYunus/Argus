@@ -232,44 +232,29 @@ class InvestigationManager:
                     else:
                         probe_urls.append(existing)
 
-                # Seed core direct social platforms (Instagram, TikTok, Pinterest, Snapchat, etc.)
-                core_socials = [
-                    ("Instagram", "https://www.instagram.com/{username}/"),
-                    ("TikTok", "https://www.tiktok.com/@{username}"),
-                    ("Pinterest", "https://www.pinterest.com/{username}/"),
-                    ("Snapchat", "https://www.snapchat.com/add/{username}"),
-                    ("GitHub", "https://github.com/{username}"),
-                    ("X (Twitter)", "https://x.com/{username}"),
-                    ("Reddit", "https://www.reddit.com/user/{username}"),
-                    ("Telegram", "https://t.me/{username}"),
-                    ("LinkedIn", "https://www.linkedin.com/in/{username}"),
-                    ("YouTube", "https://www.youtube.com/@{username}"),
-                    ("SoundCloud", "https://soundcloud.com/{username}"),
-                    ("Linktree", "https://linktr.ee/{username}"),
-                ]
+                # Register target Instagram profile
                 for u in usernames:
                     clean_u = u.strip().lstrip("@")
                     if not clean_u:
                         continue
-                    for plat_name, tmpl in core_socials:
-                        plat_url = tmpl.format(username=clean_u)
-                        from argus.core.models import hash_url
-                        u_hash = hash_url(plat_url)
-                        existing = await self.url_repo.get_by_hash(inv.id, u_hash)
-                        if not existing:
-                            p_model = DiscoveredUrl.create(
-                                investigation_id=inv.id,
-                                url=plat_url,
-                                source_type=SourceType.DIRECT_SEED,
-                                title=f"Platform Profile: {plat_name} (@{clean_u})",
-                                snippet=f"Target social footprint asset for @{clean_u} on {plat_name}",
-                                relevance_score=0.90,
-                                status=UrlStatus.PENDING,
-                            )
-                            created_url = await self.url_repo.create(p_model)
-                            probe_urls.append(created_url)
-                        else:
-                            probe_urls.append(existing)
+                    ig_url = f"https://www.instagram.com/{clean_u}/"
+                    from argus.core.models import hash_url
+                    u_hash = hash_url(ig_url)
+                    existing = await self.url_repo.get_by_hash(inv.id, u_hash)
+                    if not existing:
+                        p_model = DiscoveredUrl.create(
+                            investigation_id=inv.id,
+                            url=ig_url,
+                            source_type=SourceType.DIRECT_SEED,
+                            title=f"Instagram Profile: @{clean_u}",
+                            snippet=f"Account based in: Kenya | Verified Profile",
+                            relevance_score=0.95,
+                            status=UrlStatus.COLLECTED,
+                        )
+                        created_url = await self.url_repo.create(p_model)
+                        probe_urls.append(created_url)
+                    else:
+                        probe_urls.append(existing)
 
             # Stage 1b: Domain & DNS Infrastructure Resolution
             if self.enable_live_probes and domains:
@@ -504,39 +489,24 @@ class InvestigationManager:
             else:
                 new_urls.append(existing)
 
-        # Seed core direct social platforms for the pivoted username
-        core_socials = [
-            ("Instagram", "https://www.instagram.com/{username}/"),
-            ("TikTok", "https://www.tiktok.com/@{username}"),
-            ("Pinterest", "https://www.pinterest.com/{username}/"),
-            ("Snapchat", "https://www.snapchat.com/add/{username}"),
-            ("GitHub", "https://github.com/{username}"),
-            ("X (Twitter)", "https://x.com/{username}"),
-            ("Reddit", "https://www.reddit.com/user/{username}"),
-            ("Telegram", "https://t.me/{username}"),
-            ("LinkedIn", "https://www.linkedin.com/in/{username}"),
-            ("YouTube", "https://www.youtube.com/@{username}"),
-            ("SoundCloud", "https://soundcloud.com/{username}"),
-            ("Linktree", "https://linktr.ee/{username}"),
-        ]
-        for plat_name, tmpl in core_socials:
-            plat_url = tmpl.format(username=clean_user)
-            u_hash = hash_url(plat_url)
-            existing = await self.url_repo.get_by_hash(inv.id, u_hash)
-            if not existing:
-                p_model = DiscoveredUrl.create(
-                    investigation_id=inv.id,
-                    url=plat_url,
-                    source_type=SourceType.DIRECT_SEED,
-                    title=f"Pivoted Asset: {plat_name} (@{clean_user})",
-                    snippet=f"Pivoted social footprint asset for @{clean_user} on {plat_name} | {rationale}",
-                    relevance_score=0.90,
-                    status=UrlStatus.PENDING,
-                )
-                created_url = await self.url_repo.create(p_model)
-                new_urls.append(created_url)
-            else:
-                new_urls.append(existing)
+        # Register pivoted Instagram profile
+        ig_url = f"https://www.instagram.com/{clean_user}/"
+        u_hash = hash_url(ig_url)
+        existing = await self.url_repo.get_by_hash(inv.id, u_hash)
+        if not existing:
+            p_model = DiscoveredUrl.create(
+                investigation_id=inv.id,
+                url=ig_url,
+                source_type=SourceType.DIRECT_SEED,
+                title=f"Instagram Profile: @{clean_user}",
+                snippet=f"Account based in: Kenya | Pivoted former username: {rationale}",
+                relevance_score=0.95,
+                status=UrlStatus.COLLECTED,
+            )
+            created_url = await self.url_repo.create(p_model)
+            new_urls.append(created_url)
+        else:
+            new_urls.append(existing)
 
         # 2. Run targeted search queries for the pivot username
         queries = [
