@@ -85,10 +85,25 @@ class FilteringEngine:
             usernames = [usernames]
         for uname in usernames:
             u_clean = uname.strip().lower()
-            # Look for boundary matching for usernames to avoid false substring matches
-            if u_clean and re.search(r"\b" + re.escape(u_clean) + r"\b", text_lower):
+            if not u_clean:
+                continue
+            u_bare = u_clean.lstrip("@")
+            matched_uname = False
+            # Check boundary match, or explicit profile path (/username) / handle (@username), or substring
+            if (
+                re.search(r"\b" + re.escape(u_clean) + r"\b", text_lower)
+                or (u_bare and re.search(r"\b" + re.escape(u_bare) + r"\b", text_lower))
+                or f"/{u_clean}" in text_lower
+                or f"@{u_clean}" in text_lower
+                or (u_bare and (f"/{u_bare}" in text_lower or f"@{u_bare}" in text_lower))
+            ):
+                matched_uname = True
+            elif len(u_clean) >= 3 and u_clean in text_lower:
+                matched_uname = True
+
+            if matched_uname:
                 matched.append(f"username:{uname}")
-                score += 0.3
+                score += 0.4
 
         # 4. Known Domains
         domains = signals.get("domains", [])
@@ -128,7 +143,13 @@ class FilteringEngine:
             )
 
         # Check 2: Target Signal Matching & Relevance Scoring
-        score, matches = self.compute_signal_relevance(extracted_text, investigation)
+        # Consider the discovered URL, page title, search snippet, and body text
+        url_rec = await self.url_repo.get(document.url_id)
+        combined_text = extracted_text
+        if url_rec:
+            combined_text = f"{url_rec.url} {url_rec.title or ''} {url_rec.snippet or ''} {extracted_text}"
+
+        score, matches = self.compute_signal_relevance(combined_text, investigation)
 
         if score < self.min_relevance_threshold:
             reason = f"Low relevance score ({score:.2f} < {self.min_relevance_threshold}): no sufficient target signals found"

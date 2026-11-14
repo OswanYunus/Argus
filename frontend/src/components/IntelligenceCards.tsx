@@ -24,7 +24,7 @@ interface IntelligenceCardsProps {
 interface ParsedPlatformAsset {
   id: string;
   platform: string;
-  category: 'social' | 'code' | 'messaging' | 'gaming' | 'audio' | 'education' | 'web';
+  category: 'social' | 'code' | 'messaging' | 'gaming' | 'audio' | 'education' | 'media' | 'web';
   handle: string;
   profileUrl: string;
   title?: string;
@@ -152,6 +152,46 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
           const locMatch = u.snippet.match(/Location:\s*([^|]+)/i);
           if (locMatch) location = locMatch[1].trim();
         }
+      } else if (urlLower.includes('tiktok.com/@')) {
+        platform = 'TikTok';
+        category = 'social';
+        const m = u.url.match(/tiktok\.com\/@([a-zA-Z0-9_.-]+)/i);
+        handle = m ? m[1].replace(/\/$/, '') : '';
+      } else if (urlLower.includes('pinterest.com/')) {
+        platform = 'Pinterest';
+        category = 'social';
+        const m = u.url.match(/pinterest\.com\/([a-zA-Z0-9_.-]+)/i);
+        handle = m ? m[1].replace(/\/$/, '') : '';
+      } else if (urlLower.includes('twitter.com/') || urlLower.includes('x.com/')) {
+        platform = 'X (Twitter)';
+        category = 'social';
+        const m = u.url.match(/(?:twitter|x)\.com\/([a-zA-Z0-9_]+)/i);
+        handle = m ? m[1].replace(/\/$/, '') : '';
+      } else if (urlLower.includes('linkedin.com/in/')) {
+        platform = 'LinkedIn';
+        category = 'social';
+        const m = u.url.match(/linkedin\.com\/in\/([a-zA-Z0-9_.-]+)/i);
+        handle = m ? m[1].replace(/\/$/, '') : '';
+      } else if (urlLower.includes('youtube.com/')) {
+        platform = 'YouTube';
+        category = 'media';
+        const m = u.url.match(/youtube\.com\/(?:@|c\/|user\/)?([a-zA-Z0-9_.-]+)/i);
+        handle = m ? m[1].replace(/\/$/, '') : '';
+      } else if (urlLower.includes('twitch.tv/')) {
+        platform = 'Twitch';
+        category = 'media';
+        const m = u.url.match(/twitch\.tv\/([a-zA-Z0-9_.-]+)/i);
+        handle = m ? m[1].replace(/\/$/, '') : '';
+      } else if (urlLower.includes('strava.com/athletes/')) {
+        platform = 'Strava';
+        category = 'social';
+        const m = u.url.match(/strava\.com\/athletes\/([a-zA-Z0-9_.-]+)/i);
+        handle = m ? m[1].replace(/\/$/, '') : '';
+      } else if (urlLower.includes('open.spotify.com/user/')) {
+        platform = 'Spotify';
+        category = 'audio';
+        const m = u.url.match(/open\.spotify\.com\/user\/([a-zA-Z0-9_.-]+)/i);
+        handle = m ? m[1].replace(/\/$/, '') : '';
       } else if (urlLower.includes('github.com/')) {
         platform = 'GitHub';
         category = 'code';
@@ -246,26 +286,6 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
       }
     }
 
-    // Step B: Ensure the user's targeted Instagram profile exists if an Instagram username was provided
-    for (const u of trackedUsernames) {
-      const igKey = `instagram:${u.toLowerCase()}`;
-      if (!cardMap.has(igKey)) {
-        cardMap.set(igKey, {
-          id: `ig_${u}`,
-          platform: 'Instagram',
-          category: 'social',
-          handle: `@${u}`,
-          profileUrl: `https://www.instagram.com/${u}/`,
-          title: `Instagram Profile (@${u})`,
-          snippet: 'Target Instagram account identified from investigation seed.',
-          status: 'verified',
-          subUrlsCount: 1,
-          pastUsernames: getInstagramPastUsernames(u),
-          relevance: 0.95,
-        });
-      }
-    }
-
     return Array.from(cardMap.values());
   };
 
@@ -332,6 +352,7 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
             { id: 'code', label: 'Code' },
             { id: 'gaming', label: 'Gaming' },
             { id: 'messaging', label: 'Messaging' },
+            { id: 'media', label: 'Media' },
           ].map((cat) => {
             const active = activeCategory === cat.id;
             return (

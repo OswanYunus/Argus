@@ -152,3 +152,43 @@ async def test_filter_deduplicates_identical_content(test_db: Database):
     result = await engine.filter_document(d2, inv, "Sample text")
     assert result.passed is False
     assert "Duplicate content" in result.rejection_reason
+
+
+@pytest.mark.asyncio
+async def test_filter_accepts_social_profile_with_empty_extracted_text(test_db: Database):
+    """Test that JS-rendered profiles (e.g. Instagram) pass filtering via URL/snippet even when body text is empty."""
+    engine = FilteringEngine(db=test_db)
+    inv_repo = InvestigationRepository(test_db)
+    url_repo = UrlRepository(test_db)
+    doc_repo = DocumentRepository(test_db)
+
+    inv = Investigation.create(
+        name="Target Username Only",
+        target_name="_feliciakwame",
+        target_signals={"usernames": ["_feliciakwame"]},
+    )
+    await inv_repo.create(inv)
+
+    url_rec = DiscoveredUrl.create(
+        investigation_id=inv.id,
+        url="https://www.instagram.com/_feliciakwame/",
+        title="(@_feliciakwame) • Instagram photos and videos",
+        snippet="2,150 Followers, 520 Following, 8 Posts - @_feliciakwame on Instagram: Software engineer Ciao Milano",
+        source_type=SourceType.SEARCH_RESULT,
+    )
+    await url_repo.create(url_rec)
+
+    doc = CollectedDocument.create(
+        investigation_id=inv.id,
+        url_id=url_rec.id,
+        content_hash="instagram_shell_hash",
+        robots_compliant=True,
+    )
+    await doc_repo.create(doc)
+
+    # Empty extracted text from JS shell
+    result = await engine.filter_document(doc, inv, "")
+    assert result.passed is True
+    assert result.relevance_score >= 0.4
+    assert "username:_feliciakwame" in result.matched_signals
+
