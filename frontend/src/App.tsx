@@ -115,7 +115,7 @@ export const App: React.FC = () => {
     try {
       const res = await triggerRescan(selectedId);
       alert(
-        `Rescan Completed!\nUnchanged sources: ${res.rescan_stats.unchanged_sources}\nChanged sources: ${res.rescan_stats.changed_sources}\nNewly discovered sources: ${res.rescan_stats.new_sources_discovered}`
+        `Rescan complete.\nUnchanged sources: ${res.rescan_stats.unchanged_sources}\nChanged sources: ${res.rescan_stats.changed_sources}\nNewly discovered sources: ${res.rescan_stats.new_sources_discovered}`
       );
       await loadInvestigationData(selectedId);
     } catch (err) {
@@ -126,7 +126,7 @@ export const App: React.FC = () => {
   };
 
   const handlePurge = async () => {
-    if (!selectedId || !confirm('Permanently purge this target and cryptographically wipe all records?')) return;
+    if (!selectedId || !confirm('Permanently purge this case file and wipe all records? This cannot be undone.')) return;
     setLoading(true);
     try {
       await purgeInvestigation(selectedId);
@@ -150,7 +150,7 @@ export const App: React.FC = () => {
     if (!selectedId) return;
     setIsPivoting(true);
     try {
-      await pivotAlias(selectedId, username, `Card Pivot on past username @${username}`);
+      await pivotAlias(selectedId, username, `Card pivot on past username @${username}`);
       await loadInvestigationData(selectedId);
     } catch (err) {
       alert('Failed to pivot username: ' + err);
@@ -160,14 +160,14 @@ export const App: React.FC = () => {
   };
 
   const navItems = [
-    { id: 'cards', label: 'Platform Cards', count: urls.length },
+    { id: 'cards', label: 'Platform cards', count: urls.length },
     { id: 'overview', label: 'Overview' },
-    { id: 'identities', label: 'Identities & Aliases', count: identities.length },
+    { id: 'identities', label: 'Identities & aliases', count: identities.length },
     { id: 'evidence', label: 'Findings', count: findings.length },
-    { id: 'graph', label: 'Entity Graph' },
+    { id: 'graph', label: 'Entity graph' },
     { id: 'timeline', label: 'Timeline', count: timeline.length },
-    { id: 'sources', label: 'Raw Sources' },
-    { id: 'resources', label: 'Engine Telemetry' },
+    { id: 'sources', label: 'Raw sources' },
+    { id: 'resources', label: 'Telemetry' },
   ];
 
   return (
@@ -184,131 +184,71 @@ export const App: React.FC = () => {
         loading={loading}
       />
 
-      {/* Sleek Frosted Sub-Navigation */}
       {currentInv && (
-        <div
-          className="glass-panel"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '4px 24px',
-            borderTop: 'none',
-            borderLeft: 'none',
-            borderRight: 'none',
-            overflowX: 'auto',
-          }}
-        >
+        <nav className="tab-strip">
           {navItems.map((item) => {
             const active = activeTab === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                style={{
-                  background: active ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                  border: 'none',
-                  borderBottom: active ? '2px solid #38bdf8' : '2px solid transparent',
-                  color: active ? '#f8fafc' : '#94a3b8',
-                  padding: '10px 14px',
-                  fontSize: '13px',
-                  fontFamily: 'var(--font-sans)',
-                  fontWeight: active ? 600 : 400,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  whiteSpace: 'nowrap',
-                  transition: 'all 0.15s ease',
-                  borderRadius: '4px 4px 0 0',
-                }}
+                className={`tab${active ? ' active' : ''}`}
               >
                 <span>{item.label}</span>
                 {typeof item.count === 'number' && item.count > 0 && (
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontFamily: 'var(--font-mono)',
-                      background: active ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                      color: active ? '#38bdf8' : '#64748b',
-                      padding: '1px 6px',
-                      borderRadius: '4px',
-                    }}
-                  >
-                    {item.count}
-                  </span>
+                  <span className="tab-count">{item.count}</span>
                 )}
               </button>
             );
           })}
-        </div>
+        </nav>
       )}
 
-      {/* Main View Area */}
-      <main style={{ flex: 1, padding: '28px 32px', maxWidth: '1440px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
+      <main style={{ flex: 1, padding: '0', maxWidth: '1440px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
         {!currentInv ? (
           <div
-            className="glass-panel animate-card-in"
             style={{
-              textAlign: 'center',
-              padding: '100px 32px',
-              borderRadius: '16px',
-              maxWidth: '680px',
-              margin: '60px auto',
+              textAlign: 'left',
+              padding: '72px 40px',
+              maxWidth: '620px',
+              margin: '48px auto',
             }}
           >
-            <div
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '13px',
-                fontWeight: 600,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color: '#38bdf8',
-                marginBottom: '12px',
-              }}
-            >
-              System Ready
+            <div className="eyebrow" style={{ marginBottom: '18px' }}>
+              No case file open
             </div>
-            <h2
+            <h1
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: '28px',
-                fontWeight: 700,
-                letterSpacing: '-0.02em',
-                color: '#f8fafc',
-                margin: '0 0 12px 0',
+                fontSize: '40px',
+                fontWeight: 600,
+                letterSpacing: '-0.01em',
+                color: 'var(--paper)',
+                margin: '0 0 16px 0',
+                lineHeight: 1.1,
               }}
             >
-              Digital Footprint Intelligence
-            </h2>
+              Open a new case to begin tracing a footprint.
+            </h1>
             <p
               style={{
-                color: '#94a3b8',
-                fontSize: '14px',
-                lineHeight: 1.6,
-                margin: '0 auto 28px auto',
+                color: 'var(--muted)',
+                fontSize: '15px',
+                lineHeight: 1.65,
+                margin: '0 0 32px 0',
                 maxWidth: '480px',
               }}
             >
-              Deterministic 23-platform reconnaissance, alias pivoting, and cryptographic evidence graphs.
-              Provide an Instagram, TikTok, or web identifier to begin.
+              ARGUS runs deterministic reconnaissance across 23 platforms, pivots on
+              discovered aliases, and keeps every finding tied back to the source it
+              came from. Start with one username, email, or profile link.
             </p>
-            <button
-              onClick={() => setModalOpen(true)}
-              className="glass-btn glass-btn-primary"
-              style={{
-                padding: '12px 28px',
-                fontSize: '14px',
-                fontWeight: 600,
-                letterSpacing: '-0.01em',
-              }}
-            >
-              Launch Target Investigation
+            <button onClick={() => setModalOpen(true)} className="btn btn-primary" style={{ padding: '11px 24px', fontSize: '14px' }}>
+              Open new case
             </button>
           </div>
         ) : (
-          <div className="animate-card-in">
+          <div className="fade-in" style={{ padding: '28px 32px' }}>
             {activeTab === 'cards' && (
               <IntelligenceCards
                 urls={urls}

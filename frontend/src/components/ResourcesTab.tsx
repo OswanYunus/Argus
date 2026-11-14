@@ -13,50 +13,42 @@ export const ResourcesTab: React.FC<ResourcesTabProps> = ({ resources }) => {
   const docBytes = resources.document_bytes || 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <div className="glass-panel" style={{ borderRadius: '12px', padding: '24px 28px' }}>
-        <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', fontFamily: 'var(--font-display)', color: '#f8fafc', fontWeight: 600, letterSpacing: '0.02em', textTransform: 'uppercase' }}>
-          Engine Telemetry & Resource Budgets
-        </h3>
-        <p style={{ margin: '0 0 24px 0', color: '#94a3b8', fontSize: '13px' }}>
-          Deterministic bounds guard all HTTP probes, platform scrapers, and neural entity extractions.
-        </p>
+    <div className="panel" style={{ padding: '28px 32px' }}>
+      <h3 style={{ margin: '0 0 6px 0', fontSize: '13px', color: 'var(--paper)', fontWeight: 600 }}>
+        Engine telemetry
+      </h3>
+      <p style={{ margin: '0 0 24px 0', color: 'var(--muted)', fontSize: '13px' }}>
+        Deterministic bounds guard every HTTP probe, platform scraper, and entity extraction.
+      </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-          <div className="glass-card" style={{ borderRadius: '10px', padding: '18px' }}>
-            <div style={{ color: '#64748b', fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
-              LLM Token Usage
-            </div>
-            <div style={{ fontSize: '24px', fontFamily: 'var(--font-display)', fontWeight: 700, color: '#f8fafc', marginTop: '8px' }}>
-              {totalTokens.toLocaleString()}
-            </div>
-            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
-              {tokenIn.toLocaleString()} in / {tokenOut.toLocaleString()} out
-            </div>
+      <div className="ledger-strip">
+        <div className="ledger-cell">
+          <div className="eyebrow">LLM token usage</div>
+          <div style={{ fontSize: '24px', fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--paper)', marginTop: '8px' }}>
+            {totalTokens.toLocaleString()}
           </div>
-
-          <div className="glass-card" style={{ borderRadius: '10px', padding: '18px' }}>
-            <div style={{ color: '#64748b', fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
-              Model Inferences
-            </div>
-            <div style={{ fontSize: '24px', fontFamily: 'var(--font-display)', fontWeight: 700, color: '#f8fafc', marginTop: '8px' }}>
-              {llmCalls}
-            </div>
-            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
-              Entity Extraction & Provenance
-            </div>
+          <div style={{ fontSize: '12px', color: 'var(--faint)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+            {tokenIn.toLocaleString()} in / {tokenOut.toLocaleString()} out
           </div>
+        </div>
 
-          <div className="glass-card" style={{ borderRadius: '10px', padding: '18px' }}>
-            <div style={{ color: '#64748b', fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
-              HTTP Probes & Fetches
-            </div>
-            <div style={{ fontSize: '24px', fontFamily: 'var(--font-display)', fontWeight: 700, color: '#f8fafc', marginTop: '8px' }}>
-              {httpReqs}
-            </div>
-            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
-              {(docBytes / (1024 * 1024)).toFixed(2)} MB encrypted at rest
-            </div>
+        <div className="ledger-cell">
+          <div className="eyebrow">Model inferences</div>
+          <div style={{ fontSize: '24px', fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--paper)', marginTop: '8px' }}>
+            {llmCalls}
+          </div>
+          <div style={{ fontSize: '12px', color: 'var(--faint)', marginTop: '4px' }}>
+            entity extraction &amp; provenance
+          </div>
+        </div>
+
+        <div className="ledger-cell">
+          <div className="eyebrow">HTTP probes</div>
+          <div style={{ fontSize: '24px', fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--paper)', marginTop: '8px' }}>
+            {httpReqs}
+          </div>
+          <div style={{ fontSize: '12px', color: 'var(--faint)', marginTop: '4px' }}>
+            {(docBytes / (1024 * 1024)).toFixed(2)} MB encrypted at rest
           </div>
         </div>
       </div>

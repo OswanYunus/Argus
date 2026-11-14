@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface NewInvestigationModalProps {
   isOpen: boolean;
@@ -45,7 +45,7 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
     const cleanTargetName = targetName.trim();
 
     if (!cleanTargetName && parsedUsernames.length === 0 && parsedEmails.length === 0 && parsedDomains.length === 0 && parsedProfiles.length === 0) {
-      setErrorMsg('Please enter at least one identifier (e.g. an Instagram username, handle, or profile URL).');
+      setErrorMsg('Enter at least one identifier — a username, handle, or profile URL.');
       return;
     }
 
@@ -53,14 +53,14 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
       parsedUsernames.length > 0 ? `Target @${parsedUsernames[0]}` :
       cleanTargetName ? `Investigation: ${cleanTargetName}` :
       parsedEmails.length > 0 ? `Audit: ${parsedEmails[0]}` :
-      parsedDomains.length > 0 ? `Domain Intel: ${parsedDomains[0]}` :
+      parsedDomains.length > 0 ? `Domain intel: ${parsedDomains[0]}` :
       `Case #${Date.now().toString().slice(-6)}`
     );
 
     const autoTargetName = cleanTargetName || (
       parsedUsernames.length > 0 ? `@${parsedUsernames[0]}` :
       parsedEmails.length > 0 ? parsedEmails[0].split('@')[0] :
-      'Unknown Subject'
+      'Unknown subject'
     );
 
     setSubmitting(true);
@@ -78,20 +78,20 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
       });
       onClose();
     } catch (err: any) {
-      setErrorMsg('Error creating investigation: ' + (err.message || err));
+      setErrorMsg('Could not create case: ' + (err.message || err));
     } finally {
       setSubmitting(false);
     }
   };
+
+  const labelStyle: React.CSSProperties = { display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px' };
 
   return (
     <div
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(5, 7, 12, 0.75)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
+        backgroundColor: 'rgba(8, 8, 6, 0.78)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -100,46 +100,24 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
       }}
     >
       <div
-        className="glass-panel animate-card-in"
+        className="panel fade-in"
         style={{
-          borderRadius: '16px',
-          width: '520px',
+          width: '540px',
           maxHeight: '90vh',
           overflowY: 'auto',
-          padding: '28px',
+          padding: '30px',
           position: 'relative',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
           <div>
-            <h3
-              style={{
-                margin: 0,
-                fontSize: '18px',
-                fontFamily: 'var(--font-display)',
-                color: '#f8fafc',
-                fontWeight: 700,
-                letterSpacing: '-0.01em',
-              }}
-            >
-              New Investigation Target
+            <div className="eyebrow" style={{ marginBottom: '6px' }}>new intake</div>
+            <h3 style={{ margin: 0, fontSize: '19px', fontFamily: 'var(--font-display)', color: 'var(--paper)', fontWeight: 600 }}>
+              Open case file
             </h3>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#94a3b8' }}>
-              Initialize with any single known identifier.
-            </p>
           </div>
-          <button
-            onClick={onClose}
-            className="glass-btn"
-            style={{
-              padding: '6px',
-              border: 'none',
-              background: 'transparent',
-              color: '#94a3b8',
-              cursor: 'pointer',
-            }}
-          >
-            <X size={16} />
+          <button onClick={onClose} className="btn-plain" style={{ cursor: 'pointer', border: 'none', background: 'transparent' }}>
+            <X size={17} color="var(--muted)" />
           </button>
         </div>
 
@@ -148,204 +126,110 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
             style={{
               marginBottom: '16px',
               padding: '10px 14px',
-              borderRadius: '8px',
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-              color: '#fca5a5',
+              borderLeft: '2px solid var(--clay)',
+              background: 'var(--clay-dim)',
+              color: 'var(--clay)',
               fontSize: '12px',
-              border: '1px solid rgba(239, 68, 68, 0.25)',
             }}
           >
             {errorMsg}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* USERNAME */}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#f8fafc', fontWeight: 600, marginBottom: '6px' }}>
-              <span>Target Username / Social Handle</span>
-              <span style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 400 }}>Instagram, TikTok, X, Snapchat</span>
+            <label style={{ display: 'flex', justifyContent: 'space-between', ...labelStyle, color: 'var(--paper)', fontWeight: 600 }}>
+              <span>Target username / handle</span>
+              <span style={{ fontSize: '11px', color: 'var(--brass)', fontWeight: 400 }}>Instagram, TikTok, X, Snapchat</span>
             </label>
             <input
               type="text"
               autoFocus
-              placeholder="e.g. oswan_yunus, friend_handle"
+              placeholder="oswan_yunus, friend_handle"
               value={usernames}
               onChange={(e) => setUsernames(e.target.value)}
-              className="glass-btn"
-              style={{
-                width: '100%',
-                backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                borderColor: 'rgba(56, 189, 248, 0.4)',
-                padding: '9px 12px',
-                color: '#f8fafc',
-                fontSize: '13px',
-                outline: 'none',
-                fontFamily: 'var(--font-mono)',
-              }}
+              className="field-input field-mono"
+              style={{ borderColor: 'var(--brass)' }}
             />
           </div>
 
-          {/* PROFILE URLS */}
           <div>
-            <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>
-              Direct Profile URL (Optional)
-            </label>
+            <label style={labelStyle}>Direct profile URL (optional)</label>
             <input
               type="text"
-              placeholder="e.g. https://instagram.com/oswan_yunus"
+              placeholder="https://instagram.com/oswan_yunus"
               value={profileUrls}
               onChange={(e) => setProfileUrls(e.target.value)}
-              className="glass-btn"
-              style={{
-                width: '100%',
-                backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                padding: '8px 12px',
-                color: '#f8fafc',
-                fontSize: '13px',
-                outline: 'none',
-              }}
+              className="field-input"
             />
           </div>
 
-          {/* REAL NAME */}
           <div>
-            <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>
-              <span>Target Real Name (Optional)</span>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>Discovered automatically</span>
+            <label style={{ display: 'flex', justifyContent: 'space-between', ...labelStyle }}>
+              <span>Target real name (optional)</span>
+              <span style={{ fontSize: '11px', color: 'var(--faint)' }}>discovered automatically</span>
             </label>
             <input
               type="text"
               placeholder="Leave blank if unknown"
               value={targetName}
               onChange={(e) => setTargetName(e.target.value)}
-              className="glass-btn"
-              style={{
-                width: '100%',
-                backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                padding: '8px 12px',
-                color: '#f8fafc',
-                fontSize: '13px',
-                outline: 'none',
-              }}
+              className="field-input"
             />
           </div>
 
-          {/* EMAILS & DOMAINS (SPLIT) */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>
-                Known Email (Optional)
-              </label>
+              <label style={labelStyle}>Known email (optional)</label>
               <input
                 type="text"
                 placeholder="name@example.com"
                 value={emails}
                 onChange={(e) => setEmails(e.target.value)}
-                className="glass-btn"
-                style={{
-                  width: '100%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                  padding: '8px 12px',
-                  color: '#f8fafc',
-                  fontSize: '13px',
-                  outline: 'none',
-                }}
+                className="field-input"
               />
             </div>
-
             <div>
-              <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>
-                Domain (Optional)
-              </label>
+              <label style={labelStyle}>Domain (optional)</label>
               <input
                 type="text"
                 placeholder="domain.com"
                 value={domains}
                 onChange={(e) => setDomains(e.target.value)}
-                className="glass-btn"
-                style={{
-                  width: '100%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                  padding: '8px 12px',
-                  color: '#f8fafc',
-                  fontSize: '13px',
-                  outline: 'none',
-                }}
+                className="field-input"
               />
             </div>
           </div>
 
-          {/* TITLE & DESCRIPTION */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             <div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>
-                <Sparkles size={11} color="#38bdf8" /> Case Title (Optional)
-              </label>
+              <label style={labelStyle}>Case title (optional)</label>
               <input
                 type="text"
                 placeholder="Auto-generated if empty"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="glass-btn"
-                style={{
-                  width: '100%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                  padding: '8px 12px',
-                  color: '#f8fafc',
-                  fontSize: '13px',
-                  outline: 'none',
-                }}
+                className="field-input"
               />
             </div>
-
             <div>
-              <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>
-                Investigation Notes
-              </label>
+              <label style={labelStyle}>Notes</label>
               <input
                 type="text"
                 placeholder="Authorized footprint audit"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="glass-btn"
-                style={{
-                  width: '100%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                  padding: '8px 12px',
-                  color: '#f8fafc',
-                  fontSize: '13px',
-                  outline: 'none',
-                }}
+                className="field-input"
               />
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
-            <button
-              type="button"
-              onClick={onClose}
-              className="glass-btn"
-              style={{
-                padding: '9px 16px',
-                fontSize: '13px',
-                color: '#94a3b8',
-              }}
-            >
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', borderTop: '1px solid var(--line)', paddingTop: '18px' }}>
+            <button type="button" onClick={onClose} className="btn" style={{ padding: '9px 16px', fontSize: '13px' }}>
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="glass-btn glass-btn-primary"
-              style={{
-                padding: '9px 20px',
-                fontSize: '13px',
-                fontWeight: 600,
-                opacity: submitting ? 0.6 : 1,
-              }}
-            >
-              {submitting ? 'Creating...' : 'Initialize Target'}
+            <button type="submit" disabled={submitting} className="btn btn-primary" style={{ padding: '9px 20px', fontSize: '13px' }}>
+              {submitting ? 'Creating…' : 'Open case'}
             </button>
           </div>
         </form>

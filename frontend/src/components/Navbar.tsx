@@ -27,88 +27,81 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   return (
     <header
-      className="glass-panel"
+      className="panel"
       style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '14px 28px',
+        padding: '16px 32px',
         borderTop: 'none',
         borderLeft: 'none',
         borderRight: 'none',
-        zIndex: 50,
       }}
     >
-      {/* Brand Wordmark */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      {/* Letterhead */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px' }}>
         <div
           style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '6px',
-            background: 'linear-gradient(135deg, #38bdf8 0%, #1e40af 100%)',
+            width: '30px',
+            height: '30px',
+            border: '1.5px solid var(--brass)',
+            borderRadius: '2px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 0 16px rgba(56, 189, 248, 0.4)',
+            fontFamily: 'var(--font-display)',
+            fontWeight: 700,
+            fontSize: '15px',
+            color: 'var(--brass)',
           }}
         >
-          <div
-            style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '2px',
-              backgroundColor: '#ffffff',
-            }}
-          />
+          A
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
           <span
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '17px',
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              color: '#ffffff',
+              fontSize: '19px',
+              fontWeight: 600,
+              letterSpacing: '0.01em',
+              color: 'var(--paper)',
             }}
           >
-            ARGUS
+            Argus
           </span>
           <span
             style={{
-              fontSize: '11px',
+              fontSize: '11.5px',
               fontFamily: 'var(--font-mono)',
-              color: '#64748b',
-              letterSpacing: '0.05em',
+              color: 'var(--faint)',
             }}
           >
-            INTELLIGENCE CORE
+            case management
           </span>
         </div>
       </div>
 
-      {/* Target Selector & Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      {/* Case selector & actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         {investigations.length > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '12px', color: '#64748b', fontFamily: 'var(--font-mono)' }}>TARGET:</span>
+            <span style={{ fontSize: '11.5px', color: 'var(--faint)', fontFamily: 'var(--font-mono)' }}>case</span>
             <select
               value={selectedId || ''}
               onChange={(e) => onSelect(e.target.value)}
-              className="glass-btn"
+              className="field-input"
               style={{
-                padding: '6px 12px',
+                padding: '6px 10px',
                 fontSize: '13px',
-                outline: 'none',
+                width: 'auto',
                 maxWidth: '240px',
-                color: '#f8fafc',
               }}
             >
               {investigations.map((inv) => (
                 <option
                   key={inv.id}
                   value={inv.id}
-                  style={{ backgroundColor: '#0f172a', color: '#f8fafc' }}
+                  style={{ backgroundColor: '#1a1914', color: 'var(--paper)' }}
                 >
                   {inv.name} ({inv.target_name})
                 </option>
@@ -117,18 +110,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         )}
 
-        <button
-          onClick={onOpenNew}
-          className="glass-btn glass-btn-primary"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '7px 14px',
-            fontSize: '13px',
-          }}
-        >
-          <Plus size={14} /> New Target
+        <button onClick={onOpenNew} className="btn btn-primary" style={{ padding: '7px 14px', fontSize: '13px' }}>
+          <Plus size={13} /> New case
         </button>
 
         {currentInvestigation && (
@@ -136,45 +119,27 @@ export const Navbar: React.FC<NavbarProps> = ({
             style={{
               display: 'flex',
               gap: '8px',
-              marginLeft: '8px',
+              marginLeft: '6px',
               paddingLeft: '14px',
-              borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+              borderLeft: '1px solid var(--line)',
             }}
           >
             <button
               onClick={onRun}
               disabled={loading}
               title="Execute full multi-stage scan"
-              className="glass-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '7px 12px',
-                fontSize: '12px',
-                color: '#34d399',
-                borderColor: 'rgba(52, 211, 153, 0.25)',
-                opacity: loading ? 0.5 : 1,
-              }}
+              className="btn btn-teal"
+              style={{ padding: '7px 12px', fontSize: '12.5px' }}
             >
-              <Play size={12} fill="#34d399" /> Run Scan
+              <Play size={12} /> Run scan
             </button>
 
             <button
               onClick={onRescan}
               disabled={loading}
               title="Rescan with memory (incremental change detection)"
-              className="glass-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '7px 12px',
-                fontSize: '12px',
-                color: '#38bdf8',
-                borderColor: 'rgba(56, 189, 248, 0.25)',
-                opacity: loading ? 0.5 : 1,
-              }}
+              className="btn btn-brass"
+              style={{ padding: '7px 12px', fontSize: '12.5px' }}
             >
               <RefreshCw size={12} className={loading ? 'animate-spin' : ''} /> Rescan
             </button>
@@ -182,18 +147,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={onPurge}
               disabled={loading}
-              title="Cryptographically wipe target and all records"
-              className="glass-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '7px 10px',
-                fontSize: '12px',
-                color: '#f87171',
-                borderColor: 'rgba(248, 113, 113, 0.2)',
-                opacity: loading ? 0.5 : 1,
-              }}
+              title="Purge case file and all records"
+              className="btn btn-clay"
+              style={{ padding: '7px 10px', fontSize: '12.5px' }}
             >
               <Trash2 size={12} />
             </button>

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Key } from 'lucide-react';
 import { Investigation, Identity, Finding, DiscoveredUrl } from '../types';
 
 interface OverviewTabProps {
@@ -21,191 +20,131 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const likelyCount = identities.filter((i) => i.verification_status === 'likely').length;
   const rejectedUrls = urls.filter((u) => u.status === 'rejected' || u.status === 'robots_blocked').length;
   const collectedUrls = urls.filter((u) => u.status === 'collected' || u.status === 'filtered').length;
+  const totalTokens = (resources.llm_token_input || 0) + (resources.llm_token_output || 0);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Top Banner Target Card */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      {/* Case header */}
       <div
-        className="glass-card"
+        className="panel"
         style={{
-          borderRadius: '14px',
-          padding: '24px 28px',
+          padding: '28px 32px',
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           flexWrap: 'wrap',
-          gap: '16px',
+          gap: '20px',
         }}
       >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <h2
-              style={{
-                margin: 0,
-                fontSize: '22px',
-                fontFamily: 'var(--font-display)',
-                color: '#f8fafc',
-                fontWeight: 700,
-                letterSpacing: '-0.02em',
-              }}
-            >
-              {investigation.name}
-            </h2>
+        <div style={{ maxWidth: '560px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+            <span className="eyebrow">case no. {investigation.id.slice(0, 8)}</span>
             <span
-              style={{
-                backgroundColor: investigation.status === 'completed' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(56, 189, 248, 0.15)',
-                color: investigation.status === 'completed' ? '#34d399' : '#38bdf8',
-                border: `1px solid ${investigation.status === 'completed' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(56, 189, 248, 0.3)'}`,
-                padding: '2px 8px',
-                borderRadius: '4px',
-                fontSize: '11px',
-                fontFamily: 'var(--font-mono)',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
+              className={`stamp ${investigation.status === 'completed' ? 'stamp-teal' : 'stamp-brass'}`}
             >
               {investigation.status}
             </span>
           </div>
-          <p style={{ margin: '8px 0 0 0', color: '#94a3b8', fontSize: '13px', lineHeight: 1.5 }}>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: '28px',
+              fontFamily: 'var(--font-display)',
+              color: 'var(--paper)',
+              fontWeight: 600,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {investigation.name}
+          </h2>
+          <p style={{ margin: '10px 0 0 0', color: 'var(--muted)', fontSize: '13.5px', lineHeight: 1.6 }}>
             {investigation.description || 'Target intelligence profile with evidence-backed provenance.'}
           </p>
         </div>
 
-        <div style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#64748b' }}>
-          <div>UID: {investigation.id}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', justifyContent: 'flex-end', marginTop: '6px', color: '#34d399' }}>
-            <Key size={11} /> Cryptographic At-Rest (Fernet AES-128)
-          </div>
+        <div style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: '11.5px', color: 'var(--faint)' }}>
+          <div>subject: <span style={{ color: 'var(--paper)' }}>{investigation.target_name}</span></div>
+          <div style={{ marginTop: '5px' }}>encryption: Fernet AES-128, at rest</div>
         </div>
       </div>
 
-      {/* Metric Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-        <div className="glass-card" style={{ borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#64748b', fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Target Subject
+      {/* Ledger strip */}
+      <div className="ledger-strip">
+        <div className="ledger-cell">
+          <div className="eyebrow">identities</div>
+          <div style={{ fontSize: '26px', fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--paper)', marginTop: '6px' }}>
+            {identities.length}
           </div>
-          <div style={{ fontSize: '22px', fontFamily: 'var(--font-display)', fontWeight: 700, color: '#f8fafc', marginTop: '8px' }}>
-            {investigation.target_name}
-          </div>
-          <div style={{ fontSize: '12px', color: '#34d399', marginTop: '4px' }}>
-            {verifiedCount} verified, {likelyCount} likely aliases
+          <div style={{ fontSize: '12px', color: 'var(--teal)', marginTop: '3px' }}>
+            {verifiedCount} verified · {likelyCount} likely
           </div>
         </div>
 
-        <div className="glass-card" style={{ borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#64748b', fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Verified Findings
-          </div>
-          <div style={{ fontSize: '22px', fontFamily: 'var(--font-display)', fontWeight: 700, color: '#f8fafc', marginTop: '8px' }}>
+        <div className="ledger-cell">
+          <div className="eyebrow">findings</div>
+          <div style={{ fontSize: '26px', fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--paper)', marginTop: '6px' }}>
             {findings.length}
           </div>
-          <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
-            100% cited with source excerpts
+          <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '3px' }}>
+            cited with source excerpts
           </div>
         </div>
 
-        <div className="glass-card" style={{ borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#64748b', fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Discovered Footprint
-          </div>
-          <div style={{ fontSize: '22px', fontFamily: 'var(--font-display)', fontWeight: 700, color: '#f8fafc', marginTop: '8px' }}>
+        <div className="ledger-cell">
+          <div className="eyebrow">footprint</div>
+          <div style={{ fontSize: '26px', fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--paper)', marginTop: '6px' }}>
             {urls.length}
           </div>
-          <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
-            {collectedUrls} indexed, {rejectedUrls} filtered
+          <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '3px' }}>
+            {collectedUrls} indexed · {rejectedUrls} filtered
           </div>
         </div>
 
-        <div className="glass-card" style={{ borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#64748b', fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Telemetry
+        <div className="ledger-cell">
+          <div className="eyebrow">telemetry</div>
+          <div style={{ fontSize: '26px', fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--paper)', marginTop: '6px' }}>
+            {totalTokens.toLocaleString()}
+            <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--faint)', fontFamily: 'var(--font-sans)' }}> tok</span>
           </div>
-          <div style={{ fontSize: '22px', fontFamily: 'var(--font-display)', fontWeight: 700, color: '#f8fafc', marginTop: '8px' }}>
-            {(resources.llm_token_input || 0) + (resources.llm_token_output || 0)}{' '}
-            <span style={{ fontSize: '13px', fontWeight: 400, color: '#64748b' }}>tokens</span>
-          </div>
-          <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
-            {resources.llm_call || 0} LLM calls, {resources.http_request || 0} HTTP reqs
+          <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '3px' }}>
+            {resources.llm_call || 0} calls · {resources.http_request || 0} requests
           </div>
         </div>
       </div>
 
-      {/* Target Signals & Discovery Seeds */}
-      <div className="glass-card" style={{ borderRadius: '14px', padding: '22px 26px' }}>
-        <h3 style={{ margin: '0 0 16px 0', fontSize: '14px', fontFamily: 'var(--font-display)', color: '#f8fafc', fontWeight: 600, letterSpacing: '0.02em', textTransform: 'uppercase' }}>
-          Active Investigation Seeds
+      {/* Seeds */}
+      <div className="panel" style={{ padding: '26px 32px' }}>
+        <h3 style={{ margin: '0 0 18px 0', fontSize: '13px', fontFamily: 'var(--font-sans)', color: 'var(--paper)', fontWeight: 600 }}>
+          Signals on file
         </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
-          <div>
-            <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Usernames / Handles</span>
-            <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {(investigation.target_signals?.usernames || ['None specified']).map((u, idx) => (
-                <span
-                  key={idx}
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '4px',
-                    padding: '3px 8px',
-                    fontSize: '12px',
-                    fontFamily: 'var(--font-mono)',
-                    color: '#e2e8f0',
-                  }}
-                >
-                  {u}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Known Emails</span>
-            <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {(investigation.target_signals?.emails || ['None specified']).map((e, idx) => (
-                <span
-                  key={idx}
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '4px',
-                    padding: '3px 8px',
-                    fontSize: '12px',
-                    fontFamily: 'var(--font-mono)',
-                    color: '#e2e8f0',
-                  }}
-                >
-                  {e}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Associated Domains</span>
-            <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {(investigation.target_signals?.domains || ['None specified']).map((d, idx) => (
-                <span
-                  key={idx}
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '4px',
-                    padding: '3px 8px',
-                    fontSize: '12px',
-                    fontFamily: 'var(--font-mono)',
-                    color: '#e2e8f0',
-                  }}
-                >
-                  {d}
-                </span>
-              ))}
-            </div>
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '24px' }}>
+          <SeedGroup label="Usernames / handles" values={investigation.target_signals?.usernames} />
+          <SeedGroup label="Known emails" values={investigation.target_signals?.emails} />
+          <SeedGroup label="Associated domains" values={investigation.target_signals?.domains} />
         </div>
       </div>
     </div>
   );
 };
+
+const SeedGroup: React.FC<{ label: string; values?: string[] }> = ({ label, values }) => (
+  <div>
+    <span className="eyebrow">{label}</span>
+    <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      {(values && values.length > 0 ? values : ['none specified']).map((v, idx) => (
+        <div
+          key={idx}
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '12.5px',
+            color: values && values.length > 0 ? 'var(--paper)' : 'var(--faint)',
+            borderBottom: '1px solid var(--line)',
+            paddingBottom: '6px',
+          }}
+        >
+          {v}
+        </div>
+      ))}
+    </div>
+  </div>
+);

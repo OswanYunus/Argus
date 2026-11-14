@@ -22,53 +22,54 @@ export const GraphTab: React.FC<GraphTabProps> = ({ elements }) => {
         {
           selector: 'node',
           style: {
-            'background-color': '#1e3a8a',
+            'background-color': '#211f18',
             label: 'data(label)',
-            color: '#f8fafc',
+            color: '#ece7da',
             'font-size': '11px',
-            'font-family': 'Space Grotesk, sans-serif',
+            'font-family': 'IBM Plex Sans, sans-serif',
             'text-valign': 'bottom',
             'text-margin-y': 6,
-            width: 32,
-            height: 32,
-            'border-width': 1,
-            'border-color': '#38bdf8',
+            width: 30,
+            height: 30,
+            shape: 'round-rectangle',
+            'border-width': 1.5,
+            'border-color': '#5e9485',
           },
         },
         {
           selector: 'node[?isTarget]',
           style: {
-            'background-color': '#065f46',
-            'border-color': '#34d399',
-            width: 42,
-            height: 42,
+            'background-color': '#2a2310',
+            'border-color': '#c9a227',
+            width: 40,
+            height: 40,
             'font-weight': 'bold',
           },
         },
         {
           selector: 'edge',
           style: {
-            width: 1.5,
-            'line-color': 'rgba(255, 255, 255, 0.15)',
-            'target-arrow-color': 'rgba(255, 255, 255, 0.25)',
+            width: 1.25,
+            'line-color': 'rgba(236, 231, 218, 0.18)',
+            'target-arrow-color': 'rgba(236, 231, 218, 0.3)',
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
             label: 'data(label)',
             'font-size': '9px',
-            color: '#64748b',
+            color: '#9c9484',
             'text-rotation': 'autorotate',
             'text-background-opacity': 1,
-            'text-background-color': '#07090e',
+            'text-background-color': '#121210',
             'text-background-padding': '2px',
           },
         },
         {
           selector: ':selected',
           style: {
-            'border-color': '#38bdf8',
-            'border-width': 3,
-            'line-color': '#38bdf8',
-            'target-arrow-color': '#38bdf8',
+            'border-color': '#c9a227',
+            'border-width': 2.5,
+            'line-color': '#c9a227',
+            'target-arrow-color': '#c9a227',
           },
         },
       ],
@@ -104,55 +105,42 @@ export const GraphTab: React.FC<GraphTabProps> = ({ elements }) => {
   };
 
   return (
-    <div className="glass-panel" style={{ position: 'relative', width: '100%', height: '600px', borderRadius: '12px', overflow: 'hidden' }}>
-      {/* Top Overlay Controls */}
+    <div className="panel" style={{ position: 'relative', width: '100%', height: '600px', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 10 }}>
-        <button
-          onClick={resetView}
-          className="glass-btn"
-          style={{
-            padding: '6px 12px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '12px',
-          }}
-        >
-          <RotateCcw size={13} /> Reset View
+        <button onClick={resetView} className="btn" style={{ padding: '6px 12px', fontSize: '12px' }}>
+          <RotateCcw size={13} /> Reset view
         </button>
       </div>
 
-      {/* Selected Node Details Drawer */}
       {selectedNode && (
         <div
-          className="glass-panel"
+          className="panel"
           style={{
             position: 'absolute',
             top: 16,
             right: 16,
             zIndex: 10,
-            borderRadius: '8px',
             padding: '16px',
-            width: '260px',
-            border: '1px solid rgba(56, 189, 248, 0.4)',
+            width: '250px',
+            borderColor: 'var(--brass)',
           }}
         >
-          <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', fontFamily: 'var(--font-display)', color: '#f8fafc' }}>
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', fontFamily: 'var(--font-display)', color: 'var(--paper)' }}>
             {selectedNode.label}
           </h4>
-          <div style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: '4px', fontFamily: 'var(--font-mono)' }}>
-            <div>Type: <span style={{ color: '#f8fafc' }}>{selectedNode.type}</span></div>
-            <div>Status: <span style={{ color: '#f8fafc' }}>{selectedNode.status}</span></div>
-            <div>Confidence: <span style={{ color: '#34d399' }}>{Math.round((selectedNode.confidence || 0) * 100)}%</span></div>
+          <div style={{ fontSize: '12px', color: 'var(--muted)', display: 'flex', flexDirection: 'column', gap: '4px', fontFamily: 'var(--font-mono)' }}>
+            <div>type <span style={{ color: 'var(--paper)' }}>{selectedNode.type}</span></div>
+            <div>status <span style={{ color: 'var(--paper)' }}>{selectedNode.status}</span></div>
+            <div>confidence <span style={{ color: 'var(--teal)' }}>{Math.round((selectedNode.confidence || 0) * 100)}%</span></div>
             {selectedNode.isTarget && (
-              <div style={{ color: '#38bdf8', marginTop: '4px' }}>Target Entity</div>
+              <div style={{ color: 'var(--brass)', marginTop: '4px' }}>target entity</div>
             )}
           </div>
         </div>
       )}
 
       {elements.length === 0 ? (
-        <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+        <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--faint)' }}>
           No graph relationships mapped yet. Run a scan to discover associations.
         </div>
       ) : (
