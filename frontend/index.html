@@ -217,6 +217,58 @@
         to { opacity: 1; }
       }
 
+      /* ---- Animations & Scan Indicators ---- */
+      .animate-spin {
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      .animate-pulse {
+        animation: pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.35; }
+      }
+
+      @keyframes scanShimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(200%); }
+      }
+
+      .progress-shimmer {
+        position: relative;
+        overflow: hidden;
+      }
+      .progress-shimmer::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.25) 50%,
+          transparent 100%
+        );
+        animation: scanShimmer 1.8s infinite linear;
+      }
+
+      .live-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background-color: var(--clay);
+        box-shadow: 0 0 6px var(--clay);
+        display: inline-block;
+        animation: pulse 1.4s ease-in-out infinite;
+      }
+
       a { color: inherit; }
     </style>
   </head>

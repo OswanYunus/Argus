@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshCw, Play, Trash2, Plus } from 'lucide-react';
+import { RefreshCw, Play, Trash2, Plus, Loader2 } from 'lucide-react';
 import { InvestigationSummary, Investigation } from '../types';
 
 interface NavbarProps {
@@ -12,6 +12,8 @@ interface NavbarProps {
   onRescan: () => void;
   onPurge: () => void;
   loading: boolean;
+  scanType?: 'scan' | 'rescan' | null;
+  scanElapsed?: number;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -24,6 +26,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onRescan,
   onPurge,
   loading,
+  scanType = null,
+  scanElapsed = 0,
 }) => {
   return (
     <header
@@ -129,9 +133,22 @@ export const Navbar: React.FC<NavbarProps> = ({
               disabled={loading}
               title="Execute full multi-stage scan"
               className="btn btn-teal"
-              style={{ padding: '7px 12px', fontSize: '12.5px' }}
+              style={{
+                padding: '7px 12px',
+                fontSize: '12.5px',
+                borderColor: scanType === 'scan' ? 'var(--teal)' : undefined,
+                backgroundColor: scanType === 'scan' ? 'var(--teal-dim)' : undefined,
+              }}
             >
-              <Play size={12} /> Run scan
+              {scanType === 'scan' ? (
+                <>
+                  <Loader2 size={13} className="animate-spin" /> Scanning… ({scanElapsed}s)
+                </>
+              ) : (
+                <>
+                  <Play size={12} /> Run scan
+                </>
+              )}
             </button>
 
             <button
@@ -139,9 +156,22 @@ export const Navbar: React.FC<NavbarProps> = ({
               disabled={loading}
               title="Rescan with memory (incremental change detection)"
               className="btn btn-brass"
-              style={{ padding: '7px 12px', fontSize: '12.5px' }}
+              style={{
+                padding: '7px 12px',
+                fontSize: '12.5px',
+                borderColor: scanType === 'rescan' ? 'var(--brass)' : undefined,
+                backgroundColor: scanType === 'rescan' ? 'var(--brass-dim)' : undefined,
+              }}
             >
-              <RefreshCw size={12} className={loading ? 'animate-spin' : ''} /> Rescan
+              {scanType === 'rescan' ? (
+                <>
+                  <Loader2 size={13} className="animate-spin" /> Rescanning… ({scanElapsed}s)
+                </>
+              ) : (
+                <>
+                  <RefreshCw size={12} /> Rescan
+                </>
+              )}
             </button>
 
             <button

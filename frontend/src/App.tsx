@@ -33,6 +33,7 @@ import { TimelineTab } from './components/TimelineTab';
 import { SourcesTab } from './components/SourcesTab';
 import { ResourcesTab } from './components/ResourcesTab';
 import { NewInvestigationModal } from './components/NewInvestigationModal';
+import { ScanProgressBanner } from './components/ScanProgressBanner';
 
 export const App: React.FC = () => {
   const [investigations, setInvestigations] = useState<InvestigationSummary[]>([]);
@@ -48,8 +49,25 @@ export const App: React.FC = () => {
   const [resources, setResources] = useState<Record<string, number>>({});
 
   const [loading, setLoading] = useState<boolean>(false);
+  const [scanType, setScanType] = useState<'scan' | 'rescan' | null>(null);
+  const [scanElapsed, setScanElapsed] = useState<number>(0);
+  const [lastCompletedStats, setLastCompletedStats] = useState<{ duration: number; sourcesCount: number } | null>(null);
   const [isPivoting, setIsPivoting] = useState<boolean>(false);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
+
+  // Live timer tick when scan is active
+  useEffect(() => {
+    let timer: any = null;
+    if (scanType) {
+      setScanElapsed(0);
+      timer = setInterval(() => {
+        setScanElapsed((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [scanType]);
 
   useEffect(() => {
     loadInvestigations();
@@ -99,29 +117,38 @@ export const App: React.FC = () => {
   const handleRun = async () => {
     if (!selectedId) return;
     setLoading(true);
+    setScanType('scan');
+    setLastCompletedStats(null);
+    const startTime = Date.now();
     try {
       await triggerRun(selectedId);
       await loadInvestigationData(selectedId);
+      const duration = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+      setLastCompletedStats({ duration, sourcesCount: urls.length });
     } catch (err) {
       alert('Error running investigation scan: ' + err);
     } finally {
       setLoading(false);
+      setScanType(null);
     }
   };
 
   const handleRescan = async () => {
     if (!selectedId) return;
     setLoading(true);
+    setScanType('rescan');
+    setLastCompletedStats(null);
+    const startTime = Date.now();
     try {
-      const res = await triggerRescan(selectedId);
-      alert(
-        `Rescan complete.\nUnchanged sources: ${res.rescan_stats.unchanged_sources}\nChanged sources: ${res.rescan_stats.changed_sources}\nNewly discovered sources: ${res.rescan_stats.new_sources_discovered}`
-      );
+      await triggerRescan(selectedId);
       await loadInvestigationData(selectedId);
+      const duration = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+      setLastCompletedStats({ duration, sourcesCount: urls.length });
     } catch (err) {
       alert('Error during rescan: ' + err);
     } finally {
       setLoading(false);
+      setScanType(null);
     }
   };
 
@@ -182,7 +209,20 @@ export const App: React.FC = () => {
         onRescan={handleRescan}
         onPurge={handlePurge}
         loading={loading}
+        scanType={scanType}
+        scanElapsed={scanElapsed}
       />
+
+      {currentInv && (
+        <ScanProgressBanner
+          active={scanType !== null}
+          type={scanType}
+          elapsedSeconds={scanElapsed}
+          targetName={currentInv.target_name || currentInv.name}
+          lastCompletedStats={lastCompletedStats}
+          onDismissCompleted={() => setLastCompletedStats(null)}
+        />
+      )}
 
       {currentInv && (
         <nav className="tab-strip">
