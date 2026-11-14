@@ -97,18 +97,60 @@ class InvestigationManager:
 
     async def create_investigation(
         self,
-        name: str,
-        target_name: str,
+        name: Optional[str] = None,
+        target_name: Optional[str] = None,
         description: str = "",
         target_signals: Optional[dict[str, Any]] = None,
         config: Optional[dict[str, Any]] = None,
     ) -> Investigation:
-        """Create a new authorized investigation with isolated encryption key."""
+        """Create a new authorized investigation with isolated encryption key and auto-resolved metadata."""
+        signals = target_signals or {}
+        raw_usernames = signals.get("usernames", [])
+        if isinstance(raw_usernames, str):
+            raw_usernames = [raw_usernames]
+        raw_emails = signals.get("emails", [])
+        if isinstance(raw_emails, str):
+            raw_emails = [raw_emails]
+        raw_domains = signals.get("domains", [])
+        if isinstance(raw_domains, str):
+            raw_domains = [raw_domains]
+        raw_profiles = signals.get("profile_urls", [])
+        if isinstance(raw_profiles, str):
+            raw_profiles = [raw_profiles]
+
+        # Auto-resolve target_name if unknown
+        final_target_name = (target_name or "").strip()
+        if not final_target_name:
+            if raw_usernames:
+                final_target_name = f"@{raw_usernames[0]}"
+            elif raw_emails:
+                final_target_name = raw_emails[0].split("@")[0]
+            elif raw_domains:
+                final_target_name = raw_domains[0]
+            elif raw_profiles:
+                final_target_name = raw_profiles[0].split("/")[-1] or "Target Asset"
+            else:
+                final_target_name = "Subject " + generate_id()[:6]
+
+        # Auto-resolve investigation title/name if omitted
+        final_name = (name or "").strip()
+        if not final_name:
+            if target_name and target_name.strip():
+                final_name = f"Investigation: {target_name.strip()}"
+            elif raw_usernames:
+                final_name = f"Footprint @{raw_usernames[0]}"
+            elif raw_emails:
+                final_name = f"Audit: {raw_emails[0]}"
+            elif raw_domains:
+                final_name = f"Domain Intel: {raw_domains[0]}"
+            else:
+                final_name = f"Case #{generate_id()[:8]}"
+
         inv = Investigation.create(
-            name=name,
-            target_name=target_name,
+            name=final_name,
+            target_name=final_target_name,
             description=description,
-            target_signals=target_signals or {},
+            target_signals=signals,
             config=config or {},
             encryption_key_id=generate_id(),
             status=InvestigationStatus.CREATED,

@@ -23,8 +23,8 @@ export async function fetchInvestigation(id: string): Promise<Investigation> {
 }
 
 export async function createInvestigation(data: {
-  name: string;
-  target_name: string;
+  name?: string;
+  target_name?: string;
   description?: string;
   target_signals: Record<string, any>;
 }): Promise<Investigation> {

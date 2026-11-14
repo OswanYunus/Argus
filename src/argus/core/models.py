@@ -883,9 +883,9 @@ class CreateInvestigationRequest(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    name: str
+    name: Optional[str] = None
     description: Optional[str] = None
-    target_name: str
+    target_name: Optional[str] = None
     target_signals: dict[str, object] = Field(default_factory=dict)
     config: Optional[dict[str, object]] = None
 
