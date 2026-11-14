@@ -1,0 +1,60 @@
+# ARGUS Configuration
+# Secrets should be in .env, not here.
+
+app:
+  name: "ARGUS"
+  data_dir: "./data"
+  log_level: "INFO"
+
+database:
+  path: "./data/argus.db"
+  wal_mode: true
+  busy_timeout_ms: 5000
+
+collection:
+  max_concurrent_requests: 10
+  request_timeout_seconds: 30
+  max_document_size_mb: 50
+  respect_robots_txt: true
+  user_agent: "ARGUS-OSINT-Engine/1.0 (authorized-research)"
+  default_rate_limit:
+    requests_per_second: 2.0
+    burst: 5
+
+discovery:
+  max_recursion_depth: 2
+  max_urls_per_query: 50
+  max_total_urls: 5000
+  providers:
+    - name: "duckduckgo"
+      enabled: true
+      rate_limit:
+        requests_per_second: 1.0
+        burst: 3
+
+analysis:
+  llm_provider: "deepseek"
+  llm_model: "deepseek-chat"
+  llm_base_url: "https://api.deepseek.com/v1"
+  max_tokens_per_call: 4096
+  max_llm_calls_per_run: 100
+  min_relevance_for_analysis: 0.3
+
+entity_resolution:
+  min_signals_for_likely: 2
+  min_signals_for_verified: 3
+  single_signal_max_confidence: 0.4
+  confidence_decay_days: 180
+
+pipeline:
+  max_concurrent_tasks: 20
+  task_timeout_seconds: 120
+  max_retries: 3
+  budget:
+    max_http_requests: 10000
+    max_llm_calls: 500
+    max_document_bytes: 500000000  # 500 MB
+
+api:
+  host: "127.0.0.1"
+  port: 8080
