@@ -143,3 +143,100 @@ async def test_probe_gravatar(httpx_mock: HTTPXMock):
     assert finding is not None
     assert finding.platform_name == "Gravatar"
     assert finding.extracted_metadata["displayName"] == "Test User"
+
+
+@pytest.mark.asyncio
+async def test_probe_snapchat(httpx_mock: HTTPXMock):
+    snap_def = next(p for p in PLATFORM_CATALOGUE if p.name == "Snapchat")
+    httpx_mock.add_response(
+        url="https://www.snapchat.com/add/teamsnapchat",
+        status_code=200,
+    )
+    httpx_mock.add_response(
+        url="https://www.snapchat.com/add/nonexistent_snap99",
+        status_code=404,
+    )
+
+    engine = PlatformProbeEngine()
+    async with httpx.AsyncClient() as client:
+        found = await engine.probe_single_platform(client, snap_def, "teamsnapchat")
+        missing = await engine.probe_single_platform(client, snap_def, "nonexistent_snap99")
+
+    assert found is not None
+    assert found.platform_name == "Snapchat"
+    assert missing is None
+
+
+@pytest.mark.asyncio
+async def test_probe_pinterest(httpx_mock: HTTPXMock):
+    pin_def = next(p for p in PLATFORM_CATALOGUE if p.name == "Pinterest")
+    httpx_mock.add_response(
+        url="https://www.pinterest.com/artlover/",
+        status_code=200,
+        text="<html><head><title>Art Lover (artlover) - Profile | Pinterest</title></head></html>",
+    )
+    httpx_mock.add_response(
+        url="https://www.pinterest.com/fakeuser999/",
+        status_code=200,
+        text="<html><head><title>User not found</title></head></html>",
+    )
+
+    engine = PlatformProbeEngine()
+    async with httpx.AsyncClient() as client:
+        found = await engine.probe_single_platform(client, pin_def, "artlover")
+        missing = await engine.probe_single_platform(client, pin_def, "fakeuser999")
+
+    assert found is not None
+    assert found.platform_name == "Pinterest"
+    assert missing is None
+
+
+@pytest.mark.asyncio
+async def test_probe_duolingo(httpx_mock: HTTPXMock):
+    duo_def = next(p for p in PLATFORM_CATALOGUE if p.name == "Duolingo")
+    httpx_mock.add_response(
+        url="https://www.duolingo.com/2017-06-30/users?username=polyglot",
+        status_code=200,
+        json={"users": [{"name": "Polyglot", "streak": 450, "bio": "Learning languages"}]},
+    )
+    httpx_mock.add_response(
+        url="https://www.duolingo.com/2017-06-30/users?username=nobody99",
+        status_code=200,
+        json={"users": []},
+    )
+
+    engine = PlatformProbeEngine()
+    async with httpx.AsyncClient() as client:
+        found = await engine.probe_single_platform(client, duo_def, "polyglot")
+        missing = await engine.probe_single_platform(client, duo_def, "nobody99")
+
+    assert found is not None
+    assert found.platform_name == "Duolingo"
+    assert found.extracted_metadata["streak"] == 450
+    assert missing is None
+
+
+@pytest.mark.asyncio
+async def test_probe_bluesky(httpx_mock: HTTPXMock):
+    bsky_def = next(p for p in PLATFORM_CATALOGUE if p.name == "Bluesky")
+    httpx_mock.add_response(
+        url="https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=alice.bsky.social",
+        status_code=200,
+        json={"did": "did:plc:123456", "displayName": "Alice", "description": "Hello Bluesky"},
+    )
+    httpx_mock.add_response(
+        url="https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=fake.bsky.social",
+        status_code=400,
+        json={"error": "AccountNotFound"},
+    )
+
+    engine = PlatformProbeEngine()
+    async with httpx.AsyncClient() as client:
+        found = await engine.probe_single_platform(client, bsky_def, "alice")
+        missing = await engine.probe_single_platform(client, bsky_def, "fake")
+
+    assert found is not None
+    assert found.platform_name == "Bluesky"
+    assert found.extracted_metadata["did"] == "did:plc:123456"
+    assert missing is None
+

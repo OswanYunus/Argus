@@ -139,6 +139,81 @@ PLATFORM_CATALOGUE: list[PlatformProbeDefinition] = [
         check_type="status",
         expected_status=200,
     ),
+    PlatformProbeDefinition(
+        name="Snapchat",
+        category="social",
+        url_template="https://www.snapchat.com/add/{username}",
+        check_type="status",
+        expected_status=200,
+    ),
+    PlatformProbeDefinition(
+        name="Pinterest",
+        category="social",
+        url_template="https://www.pinterest.com/{username}/",
+        check_type="pinterest_html",
+    ),
+    PlatformProbeDefinition(
+        name="Linktree",
+        category="social",
+        url_template="https://linktr.ee/{username}",
+        check_type="status",
+        expected_status=200,
+    ),
+    PlatformProbeDefinition(
+        name="SoundCloud",
+        category="music",
+        url_template="https://soundcloud.com/{username}",
+        check_type="status",
+        expected_status=200,
+    ),
+    PlatformProbeDefinition(
+        name="Duolingo",
+        category="education",
+        url_template="https://www.duolingo.com/profile/{username}",
+        api_url_template="https://www.duolingo.com/2017-06-30/users?username={username}",
+        check_type="duolingo_json",
+    ),
+    PlatformProbeDefinition(
+        name="Substack",
+        category="publishing",
+        url_template="https://{username}.substack.com",
+        check_type="status",
+        expected_status=200,
+    ),
+    PlatformProbeDefinition(
+        name="Bluesky",
+        category="social",
+        url_template="https://bsky.app/profile/{username}.bsky.social",
+        api_url_template="https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={username}.bsky.social",
+        check_type="bluesky_api",
+    ),
+    PlatformProbeDefinition(
+        name="Dribbble",
+        category="design",
+        url_template="https://dribbble.com/{username}",
+        check_type="status",
+        expected_status=200,
+    ),
+    PlatformProbeDefinition(
+        name="Steam",
+        category="gaming",
+        url_template="https://steamcommunity.com/id/{username}",
+        check_type="steam_html",
+    ),
+    PlatformProbeDefinition(
+        name="Disqus",
+        category="community",
+        url_template="https://disqus.com/by/{username}/",
+        check_type="status",
+        expected_status=200,
+    ),
+    PlatformProbeDefinition(
+        name="Wattpad",
+        category="publishing",
+        url_template="https://www.wattpad.com/user/{username}",
+        check_type="status",
+        expected_status=200,
+    ),
 ]
 
 
@@ -314,7 +389,71 @@ class PlatformProbeEngine:
                             confidence=0.97,
                         )
 
-            # 8. Direct Status Code Check (with 404 distinction)
+            # 8. Pinterest Profile Check
+            elif platform.check_type == "pinterest_html":
+                if resp.status_code == 200:
+                    text_lower = resp.text.lower()
+                    if ("user not found" not in text_lower and "user_not_found" not in text_lower) and (
+                        "- profile | pinterest" in text_lower or f"pinterest.com/{username.lower()}" in text_lower
+                    ):
+                        return ProbeFinding(
+                            platform_name=platform.name,
+                            category=platform.category,
+                            profile_url=profile_url,
+                            username=username,
+                            status_code=resp.status_code,
+                            raw_evidence=f"Pinterest profile active for {username}",
+                            confidence=0.92,
+                        )
+
+            # 9. Duolingo API Check
+            elif platform.check_type == "duolingo_json":
+                if resp.status_code == 200:
+                    data = resp.json()
+                    users = data.get("users", [])
+                    if isinstance(users, list) and len(users) > 0:
+                        u_data = users[0]
+                        return ProbeFinding(
+                            platform_name=platform.name,
+                            category=platform.category,
+                            profile_url=profile_url,
+                            username=username,
+                            status_code=resp.status_code,
+                            raw_evidence=f"Duolingo user: name={u_data.get('name')}, streak={u_data.get('streak')}, bio={u_data.get('bio')}",
+                            extracted_metadata=u_data,
+                            confidence=0.96,
+                        )
+
+            # 10. Bluesky API Check
+            elif platform.check_type == "bluesky_api":
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if isinstance(data, dict) and data.get("did"):
+                        return ProbeFinding(
+                            platform_name=platform.name,
+                            category=platform.category,
+                            profile_url=profile_url,
+                            username=username,
+                            status_code=resp.status_code,
+                            raw_evidence=f"Bluesky DID: {data.get('did')}, Display: {data.get('displayName')}, Bio: {data.get('description')}",
+                            extracted_metadata=data,
+                            confidence=0.96,
+                        )
+
+            # 11. Steam Profile Check
+            elif platform.check_type == "steam_html":
+                if resp.status_code == 200 and "actual_persona_name" in resp.text and "The specified profile could not be found" not in resp.text:
+                    return ProbeFinding(
+                        platform_name=platform.name,
+                        category=platform.category,
+                        profile_url=profile_url,
+                        username=username,
+                        status_code=resp.status_code,
+                        raw_evidence=f"Steam Community profile active for {username}",
+                        confidence=0.95,
+                    )
+
+            # 12. Direct Status Code Check (with 404 distinction)
             elif platform.check_type == "status":
                 if resp.status_code == platform.expected_status:
                     return ProbeFinding(

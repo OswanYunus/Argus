@@ -94,12 +94,16 @@ class DiscoveryEngine:
                     depth_level=depth_level,
                 )
             )
-            # Targeted social profile queries (Instagram, TikTok, LinkedIn, X)
+            # Targeted social profile queries (Instagram, TikTok, Strava, Pinterest, Snapchat, Spotify, LinkedIn, X)
             for social_dork in [
                 f'site:instagram.com "{uname}"',
                 f'site:tiktok.com "@{uname}"',
                 f'site:linkedin.com/in/ "{uname}"',
                 f'site:x.com "{uname}"',
+                f'site:strava.com/athletes "{uname}"',
+                f'site:pinterest.com "{uname}"',
+                f'site:snapchat.com/add "{uname}"',
+                f'site:open.spotify.com/user "{uname}"',
             ]:
                 queries.append(
                     SearchQuery.create(

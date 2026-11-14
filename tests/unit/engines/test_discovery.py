@@ -83,8 +83,8 @@ def test_generate_seed_queries(db_instance: Database):
     )
 
     queries = engine.generate_seed_queries(inv)
-    # 1 exact name + 1 email + 1 domain + 1 username + 4 targeted social dorks = 8 queries
-    assert len(queries) == 8
+    # 1 exact name + 1 email + 1 domain + 1 username + 8 targeted social dorks = 12 queries
+    assert len(queries) == 12
     texts = [q.query_text for q in queries]
     types = [q.query_type for q in queries]
 
@@ -96,6 +96,9 @@ def test_generate_seed_queries(db_instance: Database):
     assert QueryType.USERNAME in types
     assert any("site:instagram.com" in t for t in texts)
     assert any("site:tiktok.com" in t for t in texts)
+    assert any("site:strava.com" in t for t in texts)
+    assert any("site:pinterest.com" in t for t in texts)
+    assert any("site:snapchat.com" in t for t in texts)
     assert "site:alice.dev" in texts
     assert QueryType.DOMAIN in types
 
