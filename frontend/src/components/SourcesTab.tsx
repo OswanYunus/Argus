@@ -20,31 +20,31 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({ urls }) => {
     switch (status) {
       case 'filtered':
         return (
-          <span style={{ backgroundColor: '#065f46', color: '#34d399', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
-            FILTERED (PASSED)
+          <span style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#34d399', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
+            PASSED
           </span>
         );
       case 'collected':
         return (
-          <span style={{ backgroundColor: '#1e3a8a', color: '#60a5fa', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
-            COLLECTED
+          <span style={{ backgroundColor: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
+            INDEXED
           </span>
         );
       case 'rejected':
         return (
-          <span style={{ backgroundColor: '#7f1d1d', color: '#f87171', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+          <span style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#f87171', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
             REJECTED
           </span>
         );
       case 'robots_blocked':
         return (
-          <span style={{ backgroundColor: '#78350f', color: '#fbbf24', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
-            ROBOTS.TXT BLOCKED
+          <span style={{ backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
+            ROBOTS BLOCKED
           </span>
         );
       default:
         return (
-          <span style={{ backgroundColor: '#334155', color: '#94a3b8', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+          <span style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: '#94a3b8', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
             {status.toUpperCase()}
           </span>
         );
@@ -54,22 +54,31 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({ urls }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Controls Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111827', padding: '14px 20px', borderRadius: '10px', border: '1px solid #1f2937' }}>
-        <div style={{ display: 'flex', gap: '8px' }}>
+      <div
+        className="glass-panel"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '14px 20px',
+          borderRadius: '10px',
+          flexWrap: 'wrap',
+          gap: '12px',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '6px' }}>
           {['all', 'filtered', 'collected', 'rejected', 'robots_blocked'].map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
+              className="glass-btn"
               style={{
-                backgroundColor: statusFilter === s ? '#2563eb' : '#1f2937',
-                color: statusFilter === s ? '#ffffff' : '#94a3b8',
-                border: '1px solid #374151',
+                backgroundColor: statusFilter === s ? 'rgba(56, 189, 248, 0.2)' : undefined,
+                borderColor: statusFilter === s ? 'rgba(56, 189, 248, 0.4)' : undefined,
+                color: statusFilter === s ? '#38bdf8' : '#94a3b8',
                 padding: '6px 12px',
-                borderRadius: '6px',
                 fontSize: '12px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                textTransform: 'capitalize'
+                textTransform: 'capitalize',
               }}
             >
               {s.replace('_', ' ')}
@@ -79,31 +88,30 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({ urls }) => {
 
         <input
           type="text"
-          placeholder="Search URLs..."
+          placeholder="Filter sources..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          className="glass-btn"
           style={{
-            backgroundColor: '#1f2937',
-            border: '1px solid #374151',
-            borderRadius: '6px',
-            color: '#f8fafc',
-            padding: '6px 12px',
-            fontSize: '13px',
-            width: '240px',
+            backgroundColor: 'rgba(255, 255, 255, 0.03)',
+            padding: '7px 12px',
+            fontSize: '12px',
+            width: '220px',
             outline: 'none',
+            color: '#f8fafc',
           }}
         />
       </div>
 
       {/* URLs Table */}
-      <div style={{ backgroundColor: '#111827', border: '1px solid #1f2937', borderRadius: '10px', overflow: 'hidden' }}>
+      <div className="glass-panel" style={{ borderRadius: '12px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
           <thead>
-            <tr style={{ backgroundColor: '#0f172a', borderBottom: '1px solid #1f2937', color: '#94a3b8' }}>
-              <th style={{ padding: '12px 16px', fontWeight: 600 }}>URL / Webpage</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600, width: '180px' }}>Status</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600, width: '220px' }}>Analysis / Rejection Reason</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600, width: '120px' }}>Discovered</th>
+            <tr style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', borderBottom: '1px solid rgba(255, 255, 255, 0.07)', color: '#64748b' }}>
+              <th style={{ padding: '14px 18px', fontWeight: 600, fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase' }}>URL / Target Endpoint</th>
+              <th style={{ padding: '14px 18px', fontWeight: 600, fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', width: '160px' }}>Status</th>
+              <th style={{ padding: '14px 18px', fontWeight: 600, fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', width: '220px' }}>Analysis</th>
+              <th style={{ padding: '14px 18px', fontWeight: 600, fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', width: '110px' }}>First Seen</th>
             </tr>
           </thead>
           <tbody>
@@ -115,10 +123,10 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({ urls }) => {
               </tr>
             ) : (
               filtered.map((u) => (
-                <tr key={u.id} style={{ borderBottom: '1px solid #1f2937', color: '#e2e8f0' }}>
-                  <td style={{ padding: '12px 16px' }}>
+                <tr key={u.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)', color: '#e2e8f0' }}>
+                  <td style={{ padding: '14px 18px' }}>
                     <div style={{ fontWeight: 500, color: '#f8fafc' }}>
-                      {u.title || 'Untitled Document'}
+                      {u.title || 'Untitled Discovery'}
                     </div>
                     <a
                       href={u.url}
@@ -134,11 +142,11 @@ export const SourcesTab: React.FC<SourcesTabProps> = ({ urls }) => {
                       </div>
                     )}
                   </td>
-                  <td style={{ padding: '12px 16px' }}>{getStatusBadge(u.status)}</td>
-                  <td style={{ padding: '12px 16px', fontSize: '12px', color: u.rejection_reason ? '#fca5a5' : '#94a3b8' }}>
-                    {u.rejection_reason || 'Passed all deterministic relevance filters'}
+                  <td style={{ padding: '14px 18px' }}>{getStatusBadge(u.status)}</td>
+                  <td style={{ padding: '14px 18px', fontSize: '12px', color: u.rejection_reason ? '#fca5a5' : '#94a3b8' }}>
+                    {u.rejection_reason || 'Verified discovery passed relevance heuristics'}
                   </td>
-                  <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#64748b' }}>
+                  <td style={{ padding: '14px 18px', fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#64748b' }}>
                     {u.first_seen_at.slice(0, 10)}
                   </td>
                 </tr>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 
 interface TimelineTabProps {
   timeline: any[];
@@ -7,39 +7,39 @@ interface TimelineTabProps {
 
 export const TimelineTab: React.FC<TimelineTabProps> = ({ timeline }) => {
   return (
-    <div style={{ backgroundColor: '#111827', border: '1px solid #1f2937', borderRadius: '10px', padding: '24px' }}>
-      <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', color: '#f8fafc', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <Calendar size={18} color="#3b82f6" /> Target Footprint Chronological Timeline
+    <div className="glass-panel" style={{ borderRadius: '12px', padding: '24px 28px' }}>
+      <h3 style={{ margin: '0 0 20px 0', fontSize: '15px', fontFamily: 'var(--font-display)', color: '#f8fafc', fontWeight: 600, letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+        Chronological Timeline
       </h3>
 
       {timeline.length === 0 ? (
-        <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>
+        <div style={{ padding: '80px 0', textAlign: 'center', color: '#64748b' }}>
           No chronological timeline events with temporal dates identified yet.
         </div>
       ) : (
-        <div style={{ position: 'relative', borderLeft: '2px solid #1e293b', marginLeft: '16px', paddingLeft: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ position: 'relative', borderLeft: '1px solid rgba(255, 255, 255, 0.1)', marginLeft: '12px', paddingLeft: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {timeline.map((event, idx) => (
             <div key={idx} style={{ position: 'relative' }}>
               {/* Dot */}
               <div
                 style={{
                   position: 'absolute',
-                  left: '-31px',
-                  top: '4px',
-                  width: '12px',
-                  height: '12px',
+                  left: '-29px',
+                  top: '6px',
+                  width: '9px',
+                  height: '9px',
                   borderRadius: '50%',
-                  backgroundColor: '#3b82f6',
-                  border: '2px solid #0b0f17',
+                  backgroundColor: '#38bdf8',
+                  boxShadow: '0 0 8px #38bdf880',
                 }}
               />
 
-              <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', padding: '16px' }}>
+              <div className="glass-card" style={{ borderRadius: '8px', padding: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', fontFamily: 'JetBrains Mono', color: '#38bdf8', fontWeight: 600 }}>
+                  <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#38bdf8' }}>
                     {event.temporal_date ? event.temporal_date.slice(0, 10) : 'Date unverified'}
                   </span>
-                  <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'capitalize' }}>
+                  <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'capitalize', fontFamily: 'var(--font-mono)' }}>
                     Precision: {event.temporal_precision || 'approximate'}
                   </span>
                 </div>
@@ -55,7 +55,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({ timeline }) => {
                 )}
 
                 {event.excerpt && (
-                  <div style={{ backgroundColor: '#1e293b', padding: '8px 12px', borderRadius: '4px', fontSize: '12px', color: '#cbd5e1', fontStyle: 'italic', marginTop: '10px' }}>
+                  <div style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', padding: '8px 12px', borderRadius: '4px', fontSize: '12px', color: '#cbd5e1', fontStyle: 'italic', marginTop: '10px' }}>
                     "{event.excerpt}"
                   </div>
                 )}

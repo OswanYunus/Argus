@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, PlusCircle, RefreshCw, Trash2, Play } from 'lucide-react';
+import { RefreshCw, Play, Trash2, Plus } from 'lucide-react';
 import { InvestigationSummary, Investigation } from '../types';
 
 interface NavbarProps {
@@ -26,146 +26,176 @@ export const Navbar: React.FC<NavbarProps> = ({
   loading,
 }) => {
   return (
-    <header style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '12px 24px',
-      backgroundColor: '#111827',
-      borderBottom: '1px solid #1f2937'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{
-          backgroundColor: '#3b82f6',
-          padding: '8px',
-          borderRadius: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 0 12px rgba(59, 130, 246, 0.4)'
-        }}>
-          <Shield size={22} color="#ffffff" />
+    <header
+      className="glass-panel"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '14px 28px',
+        borderTop: 'none',
+        borderLeft: 'none',
+        borderRight: 'none',
+        zIndex: 50,
+      }}
+    >
+      {/* Brand Wordmark */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div
+          style={{
+            width: '28px',
+            height: '28px',
+            borderRadius: '6px',
+            background: 'linear-gradient(135deg, #38bdf8 0%, #1e40af 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 0 16px rgba(56, 189, 248, 0.4)',
+          }}
+        >
+          <div
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '2px',
+              backgroundColor: '#ffffff',
+            }}
+          />
         </div>
-        <div>
-          <span style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '0.05em', color: '#f8fafc' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '17px',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              color: '#ffffff',
+            }}
+          >
             ARGUS
           </span>
-          <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: '8px', fontFamily: 'JetBrains Mono' }}>
-            v0.1.0-INTEL
+          <span
+            style={{
+              fontSize: '11px',
+              fontFamily: 'var(--font-mono)',
+              color: '#64748b',
+              letterSpacing: '0.05em',
+            }}
+          >
+            INTELLIGENCE CORE
           </span>
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '13px', color: '#94a3b8' }}>Target:</span>
-          <select
-            value={selectedId || ''}
-            onChange={(e) => onSelect(e.target.value)}
-            style={{
-              backgroundColor: '#1f2937',
-              color: '#f8fafc',
-              border: '1px solid #374151',
-              borderRadius: '6px',
-              padding: '6px 12px',
-              fontSize: '13px',
-              outline: 'none',
-              cursor: 'pointer'
-            }}
-          >
-            {investigations.map((inv) => (
-              <option key={inv.id} value={inv.id}>
-                {inv.name} ({inv.target_name})
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Target Selector & Actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {investigations.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '12px', color: '#64748b', fontFamily: 'var(--font-mono)' }}>TARGET:</span>
+            <select
+              value={selectedId || ''}
+              onChange={(e) => onSelect(e.target.value)}
+              className="glass-btn"
+              style={{
+                padding: '6px 12px',
+                fontSize: '13px',
+                outline: 'none',
+                maxWidth: '240px',
+                color: '#f8fafc',
+              }}
+            >
+              {investigations.map((inv) => (
+                <option
+                  key={inv.id}
+                  value={inv.id}
+                  style={{ backgroundColor: '#0f172a', color: '#f8fafc' }}
+                >
+                  {inv.name} ({inv.target_name})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <button
           onClick={onOpenNew}
+          className="glass-btn glass-btn-primary"
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            backgroundColor: '#2563eb',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: '6px',
-            padding: '6px 12px',
+            padding: '7px 14px',
             fontSize: '13px',
-            fontWeight: 500,
-            cursor: 'pointer',
           }}
         >
-          <PlusCircle size={15} /> New Target
+          <Plus size={14} /> New Target
         </button>
 
         {currentInvestigation && (
-          <div style={{ display: 'flex', gap: '8px', borderLeft: '1px solid #374151', paddingLeft: '16px' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '8px',
+              marginLeft: '8px',
+              paddingLeft: '14px',
+              borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+          >
             <button
               onClick={onRun}
               disabled={loading}
               title="Execute full multi-stage scan"
+              className="glass-btn"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                backgroundColor: '#059669',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '6px 12px',
-                fontSize: '13px',
-                fontWeight: 500,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.6 : 1
+                padding: '7px 12px',
+                fontSize: '12px',
+                color: '#34d399',
+                borderColor: 'rgba(52, 211, 153, 0.25)',
+                opacity: loading ? 0.5 : 1,
               }}
             >
-              <Play size={14} /> Full Scan
+              <Play size={12} fill="#34d399" /> Run Scan
             </button>
 
             <button
               onClick={onRescan}
               disabled={loading}
-              title="Rescan with memory: checks existing sources for changes and captures newly indexed footprint"
+              title="Rescan with memory (incremental change detection)"
+              className="glass-btn"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                backgroundColor: '#0284c7',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '6px 12px',
-                fontSize: '13px',
-                fontWeight: 500,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.6 : 1
+                padding: '7px 12px',
+                fontSize: '12px',
+                color: '#38bdf8',
+                borderColor: 'rgba(56, 189, 248, 0.25)',
+                opacity: loading ? 0.5 : 1,
               }}
             >
-              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Rescan (Memory)
+              <RefreshCw size={12} className={loading ? 'animate-spin' : ''} /> Rescan
             </button>
 
             <button
               onClick={onPurge}
               disabled={loading}
-              title="Cryptographically wipe all documents and cascade delete investigation"
+              title="Cryptographically wipe target and all records"
+              className="glass-btn"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                backgroundColor: '#dc2626',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '6px 12px',
-                fontSize: '13px',
-                fontWeight: 500,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.6 : 1
+                padding: '7px 10px',
+                fontSize: '12px',
+                color: '#f87171',
+                borderColor: 'rgba(248, 113, 113, 0.2)',
+                opacity: loading ? 0.5 : 1,
               }}
             >
-              <Trash2 size={14} /> Purge
+              <Trash2 size={12} />
             </button>
           </div>
         )}

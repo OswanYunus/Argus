@@ -1,15 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Activity,
-  Calendar,
-  Database,
-  FileText,
-  Network,
-  Shield,
-  UserCheck,
-} from 'lucide-react';
-
-import {
   CytoscapeElement,
   DiscoveredUrl,
   Finding,
@@ -30,9 +20,11 @@ import {
   purgeInvestigation,
   triggerRescan,
   triggerRun,
+  pivotAlias,
 } from './services/api';
 
 import { Navbar } from './components/Navbar';
+import { IntelligenceCards } from './components/IntelligenceCards';
 import { OverviewTab } from './components/OverviewTab';
 import { IdentitiesTab } from './components/IdentitiesTab';
 import { EvidenceTab } from './components/EvidenceTab';
@@ -47,7 +39,7 @@ export const App: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [currentInv, setCurrentInv] = useState<Investigation | null>(null);
 
-  const [activeTab, setActiveTab] = useState<string>('overview');
+  const [activeTab, setActiveTab] = useState<string>('cards');
   const [identities, setIdentities] = useState<Identity[]>([]);
   const [findings, setFindings] = useState<Finding[]>([]);
   const [timeline, setTimeline] = useState<any[]>([]);
@@ -56,9 +48,9 @@ export const App: React.FC = () => {
   const [resources, setResources] = useState<Record<string, number>>({});
 
   const [loading, setLoading] = useState<boolean>(false);
+  const [isPivoting, setIsPivoting] = useState<boolean>(false);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 
-  // Load list on startup
   useEffect(() => {
     loadInvestigations();
   }, []);
@@ -71,11 +63,10 @@ export const App: React.FC = () => {
         setSelectedId(list[0].id);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load investigations:', err);
     }
   };
 
-  // Load active investigation data when selectedId changes
   useEffect(() => {
     if (selectedId) {
       loadInvestigationData(selectedId);
@@ -101,7 +92,7 @@ export const App: React.FC = () => {
       setGraphElements(graph);
       setResources(res);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load investigation data:', err);
     }
   };
 
@@ -112,7 +103,7 @@ export const App: React.FC = () => {
       await triggerRun(selectedId);
       await loadInvestigationData(selectedId);
     } catch (err) {
-      alert('Error running investigation: ' + err);
+      alert('Error running investigation scan: ' + err);
     } finally {
       setLoading(false);
     }
@@ -135,7 +126,7 @@ export const App: React.FC = () => {
   };
 
   const handlePurge = async () => {
-    if (!selectedId || !confirm('Permanently purge this target and cryptographically wipe all data?')) return;
+    if (!selectedId || !confirm('Permanently purge this target and cryptographically wipe all records?')) return;
     setLoading(true);
     try {
       await purgeInvestigation(selectedId);
@@ -155,18 +146,32 @@ export const App: React.FC = () => {
     setSelectedId(created.id);
   };
 
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: Shield },
-    { id: 'identities', label: 'Identities & Aliases', icon: UserCheck },
-    { id: 'evidence', label: 'Evidence Repository', icon: FileText },
-    { id: 'graph', label: 'Relationship Graph', icon: Network },
-    { id: 'timeline', label: 'Timeline', icon: Calendar },
-    { id: 'sources', label: 'Source Explorer', icon: Database },
-    { id: 'resources', label: 'Resource Consumption', icon: Activity },
+  const handlePivot = async (username: string) => {
+    if (!selectedId) return;
+    setIsPivoting(true);
+    try {
+      await pivotAlias(selectedId, username, `Card Pivot on past username @${username}`);
+      await loadInvestigationData(selectedId);
+    } catch (err) {
+      alert('Failed to pivot username: ' + err);
+    } finally {
+      setIsPivoting(false);
+    }
+  };
+
+  const navItems = [
+    { id: 'cards', label: 'Platform Cards', count: urls.length },
+    { id: 'overview', label: 'Overview' },
+    { id: 'identities', label: 'Identities & Aliases', count: identities.length },
+    { id: 'evidence', label: 'Findings', count: findings.length },
+    { id: 'graph', label: 'Entity Graph' },
+    { id: 'timeline', label: 'Timeline', count: timeline.length },
+    { id: 'sources', label: 'Raw Sources' },
+    { id: 'resources', label: 'Engine Telemetry' },
   ];
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent' }}>
       <Navbar
         investigations={investigations}
         selectedId={selectedId}
@@ -179,79 +184,138 @@ export const App: React.FC = () => {
         loading={loading}
       />
 
-      {/* Subnav Tabs */}
+      {/* Sleek Frosted Sub-Navigation */}
       {currentInv && (
-        <div style={{
-          display: 'flex',
-          gap: '8px',
-          padding: '0 24px',
-          backgroundColor: '#0f172a',
-          borderBottom: '1px solid #1f2937'
-        }}>
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const active = activeTab === tab.id;
+        <div
+          className="glass-panel"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 24px',
+            borderTop: 'none',
+            borderLeft: 'none',
+            borderRight: 'none',
+            overflowX: 'auto',
+          }}
+        >
+          {navItems.map((item) => {
+            const active = activeTab === item.id;
             return (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
                 style={{
+                  background: active ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                  border: 'none',
+                  borderBottom: active ? '2px solid #38bdf8' : '2px solid transparent',
+                  color: active ? '#f8fafc' : '#94a3b8',
+                  padding: '10px 14px',
+                  fontSize: '13px',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: active ? 600 : 400,
+                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '12px 14px',
-                  backgroundColor: 'transparent',
-                  color: active ? '#38bdf8' : '#94a3b8',
-                  border: 'none',
-                  borderBottom: `2px solid ${active ? '#38bdf8' : 'transparent'}`,
-                  fontSize: '13px',
-                  fontWeight: active ? 600 : 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease',
+                  borderRadius: '4px 4px 0 0',
                 }}
               >
-                <Icon size={15} /> {tab.label}
+                <span>{item.label}</span>
+                {typeof item.count === 'number' && item.count > 0 && (
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontFamily: 'var(--font-mono)',
+                      background: active ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                      color: active ? '#38bdf8' : '#64748b',
+                      padding: '1px 6px',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    {item.count}
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
       )}
 
-      {/* Main Content Area */}
-      <main style={{ flex: 1, padding: '24px', maxWidth: '1400px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
+      {/* Main View Area */}
+      <main style={{ flex: 1, padding: '28px 32px', maxWidth: '1440px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
         {!currentInv ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '100px 20px',
-            backgroundColor: '#111827',
-            borderRadius: '12px',
-            border: '1px solid #1f2937'
-          }}>
-            <Shield size={48} color="#3b82f6" style={{ margin: '0 auto 16px auto', display: 'block' }} />
-            <h3 style={{ fontSize: '20px', color: '#f8fafc', margin: '0 0 8px 0' }}>
-              Welcome to ARGUS OSINT Intelligence Engine
-            </h3>
-            <p style={{ color: '#94a3b8', fontSize: '14px', maxWidth: '500px', margin: '0 auto 24px auto' }}>
-              Multi-stage digital-footprint intelligence platform. Select an existing target or initialize a new authorized footprint investigation.
+          <div
+            className="glass-panel animate-card-in"
+            style={{
+              textAlign: 'center',
+              padding: '100px 32px',
+              borderRadius: '16px',
+              maxWidth: '680px',
+              margin: '60px auto',
+            }}
+          >
+            <div
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '13px',
+                fontWeight: 600,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: '#38bdf8',
+                marginBottom: '12px',
+              }}
+            >
+              System Ready
+            </div>
+            <h2
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '28px',
+                fontWeight: 700,
+                letterSpacing: '-0.02em',
+                color: '#f8fafc',
+                margin: '0 0 12px 0',
+              }}
+            >
+              Digital Footprint Intelligence
+            </h2>
+            <p
+              style={{
+                color: '#94a3b8',
+                fontSize: '14px',
+                lineHeight: 1.6,
+                margin: '0 auto 28px auto',
+                maxWidth: '480px',
+              }}
+            >
+              Deterministic 23-platform reconnaissance, alias pivoting, and cryptographic evidence graphs.
+              Provide an Instagram, TikTok, or web identifier to begin.
             </p>
             <button
               onClick={() => setModalOpen(true)}
+              className="glass-btn glass-btn-primary"
               style={{
-                backgroundColor: '#2563eb',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '10px 20px',
+                padding: '12px 28px',
                 fontSize: '14px',
                 fontWeight: 600,
-                cursor: 'pointer'
+                letterSpacing: '-0.01em',
               }}
             >
-              Initialize Target Investigation
+              Launch Target Investigation
             </button>
           </div>
         ) : (
-          <>
+          <div className="animate-card-in">
+            {activeTab === 'cards' && (
+              <IntelligenceCards
+                urls={urls}
+                onPivot={handlePivot}
+                isPivoting={isPivoting}
+              />
+            )}
             {activeTab === 'overview' && (
               <OverviewTab
                 investigation={currentInv}
@@ -273,7 +337,7 @@ export const App: React.FC = () => {
             {activeTab === 'timeline' && <TimelineTab timeline={timeline} />}
             {activeTab === 'sources' && <SourcesTab urls={urls} />}
             {activeTab === 'resources' && <ResourcesTab resources={resources} />}
-          </>
+          </div>
         )}
       </main>
 

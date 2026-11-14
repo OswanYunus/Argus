@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, ExternalLink, Quote, AlertOctagon, HelpCircle, Sparkles } from 'lucide-react';
+import { ExternalLink, Quote } from 'lucide-react';
 import { Finding } from '../types';
 
 interface EvidenceTabProps {
@@ -18,38 +18,34 @@ export const EvidenceTab: React.FC<EvidenceTabProps> = ({ findings }) => {
     return true;
   });
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'fact':
-        return <FileText size={15} color="#10b981" />;
-      case 'inference':
-        return <Sparkles size={15} color="#3b82f6" />;
-      case 'contradiction':
-        return <AlertOctagon size={15} color="#ef4444" />;
-      default:
-        return <HelpCircle size={15} color="#f59e0b" />;
-    }
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Controls Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111827', padding: '14px 20px', borderRadius: '10px', border: '1px solid #1f2937' }}>
-        <div style={{ display: 'flex', gap: '8px' }}>
+      <div
+        className="glass-panel"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '14px 20px',
+          borderRadius: '10px',
+          flexWrap: 'wrap',
+          gap: '12px',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '6px' }}>
           {['all', 'fact', 'inference', 'contradiction'].map((t) => (
             <button
               key={t}
               onClick={() => setFilterType(t)}
+              className="glass-btn"
               style={{
-                backgroundColor: filterType === t ? '#2563eb' : '#1f2937',
-                color: filterType === t ? '#ffffff' : '#94a3b8',
-                border: '1px solid #374151',
+                backgroundColor: filterType === t ? 'rgba(56, 189, 248, 0.2)' : undefined,
+                borderColor: filterType === t ? 'rgba(56, 189, 248, 0.4)' : undefined,
+                color: filterType === t ? '#38bdf8' : '#94a3b8',
                 padding: '6px 12px',
-                borderRadius: '6px',
                 fontSize: '12px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                textTransform: 'capitalize'
+                textTransform: 'capitalize',
               }}
             >
               {t === 'all' ? 'All Types' : `${t}s`}
@@ -58,24 +54,21 @@ export const EvidenceTab: React.FC<EvidenceTabProps> = ({ findings }) => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '13px', color: '#94a3b8' }}>Category:</span>
+          <span style={{ fontSize: '12px', color: '#64748b', fontFamily: 'var(--font-mono)' }}>CATEGORY:</span>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
+            className="glass-btn"
             style={{
-              backgroundColor: '#1f2937',
-              color: '#f8fafc',
-              border: '1px solid #374151',
-              borderRadius: '6px',
               padding: '6px 12px',
-              fontSize: '13px',
+              fontSize: '12px',
               outline: 'none',
-              cursor: 'pointer'
+              color: '#f8fafc',
             }}
           >
-            <option value="all">All Categories</option>
+            <option value="all" style={{ backgroundColor: '#0f172a' }}>All Categories</option>
             {categories.map((c) => (
-              <option key={c} value={c}>
+              <option key={c} value={c} style={{ backgroundColor: '#0f172a' }}>
                 {c}
               </option>
             ))}
@@ -85,7 +78,7 @@ export const EvidenceTab: React.FC<EvidenceTabProps> = ({ findings }) => {
 
       {/* Findings List */}
       {filtered.length === 0 ? (
-        <div style={{ backgroundColor: '#111827', border: '1px solid #1f2937', borderRadius: '10px', padding: '60px', textAlign: 'center', color: '#64748b' }}>
+        <div className="glass-panel" style={{ borderRadius: '10px', padding: '80px', textAlign: 'center', color: '#64748b' }}>
           No findings matching the selected filters.
         </div>
       ) : (
@@ -93,37 +86,50 @@ export const EvidenceTab: React.FC<EvidenceTabProps> = ({ findings }) => {
           {filtered.map((item) => (
             <div
               key={item.id}
+              className="glass-card"
               style={{
-                backgroundColor: '#111827',
-                border: '1px solid #1f2937',
-                borderRadius: '10px',
-                padding: '18px',
+                borderRadius: '12px',
+                padding: '20px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '12px',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ backgroundColor: '#1e293b', padding: '6px', borderRadius: '6px', display: 'flex' }}>
-                    {getTypeIcon(item.finding_type)}
-                  </div>
-                  <div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '15px', fontWeight: 600, color: '#f8fafc' }}>
                       {item.summary}
                     </span>
-                    <span style={{ marginLeft: '10px', backgroundColor: '#1f2937', border: '1px solid #374151', color: '#94a3b8', fontSize: '11px', padding: '2px 8px', borderRadius: '4px', textTransform: 'capitalize' }}>
+                    <span
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        color: '#94a3b8',
+                        fontSize: '11px',
+                        padding: '1px 6px',
+                        borderRadius: '4px',
+                        textTransform: 'capitalize',
+                        fontFamily: 'var(--font-mono)',
+                      }}
+                    >
                       {item.category}
                     </span>
                   </div>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: item.confidence >= 0.8 ? '#10b981' : item.confidence >= 0.6 ? '#3b82f6' : '#f59e0b' }}>
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      fontFamily: 'var(--font-mono)',
+                      color: item.confidence >= 0.8 ? '#34d399' : item.confidence >= 0.6 ? '#38bdf8' : '#fbbf24',
+                    }}
+                  >
                     {Math.round(item.confidence * 100)}% Confidence
                   </span>
                   {item.temporal_date && (
-                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', fontFamily: 'JetBrains Mono' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
                       Date: {item.temporal_date.slice(0, 10)}
                     </div>
                   )}
@@ -144,24 +150,24 @@ export const EvidenceTab: React.FC<EvidenceTabProps> = ({ findings }) => {
 
               {/* Verbatim Source Citations */}
               {item.sources && item.sources.length > 0 && (
-                <div style={{ marginTop: '8px', borderTop: '1px solid #1e293b', paddingTop: '12px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div style={{ marginTop: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: '12px' }}>
+                  <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-mono)' }}>
                     Verifiable Source Citations ({item.sources.length})
                   </span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
                     {item.sources.map((src) => (
                       <div
                         key={src.id}
                         style={{
-                          backgroundColor: '#0f172a',
-                          border: '1px solid #1e293b',
+                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                          border: '1px solid rgba(255, 255, 255, 0.05)',
                           borderRadius: '6px',
-                          padding: '10px 12px',
+                          padding: '10px 14px',
                         }}
                       >
                         {src.excerpt && (
                           <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                            <Quote size={14} color="#60a5fa" style={{ flexShrink: 0, marginTop: '2px' }} />
+                            <Quote size={13} color="#38bdf8" style={{ flexShrink: 0, marginTop: '2px' }} />
                             <span style={{ fontSize: '12px', color: '#e2e8f0', fontStyle: 'italic' }}>
                               "{src.excerpt}"
                             </span>
@@ -177,7 +183,7 @@ export const EvidenceTab: React.FC<EvidenceTabProps> = ({ findings }) => {
                             <ExternalLink size={11} /> {src.url}
                           </a>
                           {src.page_or_section && (
-                            <span style={{ fontSize: '11px', color: '#64748b', fontFamily: 'JetBrains Mono' }}>
+                            <span style={{ fontSize: '11px', color: '#64748b', fontFamily: 'var(--font-mono)' }}>
                               Section: {src.page_or_section}
                             </span>
                           )}
