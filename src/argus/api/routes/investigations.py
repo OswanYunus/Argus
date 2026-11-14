@@ -152,3 +152,28 @@ async def get_investigation_resources(
     db = await get_db()
     repo = ResourceUsageRepository(db)
     return await repo.get_summary_by_investigation(investigation_id)
+
+
+@router.post("/{investigation_id}/pivot")
+async def pivot_alias(
+    investigation_id: str,
+    payload: dict[str, Any],
+    _auth: str = Depends(verify_api_key),
+) -> dict[str, Any]:
+    from argus.core.db import get_db
+    username = payload.get("username", "").strip()
+    if not username:
+        raise HTTPException(status_code=400, detail="username is required for pivot")
+    rationale = payload.get("rationale", "User-initiated alias pivot")
+
+    db = await get_db()
+    mgr = get_manager(db)
+    try:
+        result = await mgr.pivot_investigation(
+            investigation_id=investigation_id,
+            pivot_username=username,
+            rationale=rationale,
+        )
+        return result
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))

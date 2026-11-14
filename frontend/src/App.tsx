@@ -262,7 +262,11 @@ export const App: React.FC = () => {
               />
             )}
             {activeTab === 'identities' && (
-              <IdentitiesTab investigationId={currentInv.id} identities={identities} />
+              <IdentitiesTab
+                investigationId={currentInv.id}
+                identities={identities}
+                onRefresh={() => loadInvestigationData(currentInv.id)}
+              />
             )}
             {activeTab === 'evidence' && <EvidenceTab findings={findings} />}
             {activeTab === 'graph' && <GraphTab elements={graphElements} />}

@@ -23,17 +23,25 @@ from argus.core.db import (
 from argus.core.models import (
     CollectedDocument,
     DiscoveredUrl,
+    Identity,
+    IdentityLink,
+    IdentityType,
     Investigation,
     InvestigationRun,
     InvestigationStatus,
+    LinkType,
     PipelineTask,
     PipelineTaskType,
+    QueryType,
     RunStatus,
+    SearchQuery,
     SourceCheckLog,
     SourceType,
     UrlStatus,
+    VerificationStatus,
     generate_id,
     hash_content,
+    hash_url,
     utc_now,
 )
 from argus.engines.analysis import AnalysisEngine
@@ -374,6 +382,138 @@ class InvestigationManager:
             run.id, status=RunStatus.COMPLETED, stats=rescan_stats
         )
         return rescan_stats
+
+    async def pivot_investigation(
+        self,
+        investigation_id: str,
+        pivot_username: str,
+        rationale: str = "Pivoted from discovered alias/past username",
+    ) -> dict[str, Any]:
+        """
+        Execute an alias pivot investigation on a specific username/alias across
+        all direct platforms and discovery search engines, linking findings to the
+        parent investigation.
+        """
+        inv = await self.inv_repo.get(investigation_id)
+        if not inv:
+            raise ValueError(f"Investigation {investigation_id} not found")
+
+        clean_user = pivot_username.strip().lstrip("@")
+        if not clean_user:
+            raise ValueError("Invalid username for pivot")
+
+        # 1. Run direct platform probes for the new username
+        probe_findings = await self.probes.run_probes(usernames=[clean_user])
+        new_urls: list[DiscoveredUrl] = []
+        for f in probe_findings:
+            u_hash = hash_url(f.profile_url)
+            existing = await self.url_repo.get_by_hash(inv.id, u_hash)
+            if not existing:
+                p_model = DiscoveredUrl.create(
+                    investigation_id=inv.id,
+                    url=f.profile_url,
+                    source_type=SourceType.DIRECT_SEED,
+                    title=f"Pivoted Asset: {f.platform_name} ({f.username})",
+                    snippet=f"{f.raw_evidence} | Reason: {rationale}",
+                    relevance_score=f.confidence,
+                    status=UrlStatus.PENDING,
+                )
+                created_url = await self.url_repo.create(p_model)
+                new_urls.append(created_url)
+            else:
+                new_urls.append(existing)
+
+        # 2. Run targeted search queries for the pivot username
+        queries = [
+            SearchQuery.create(
+                investigation_id=inv.id,
+                query_text=clean_user,
+                query_type=QueryType.USERNAME,
+                provider=self.discovery.adapters[0].name,
+                depth_level=1,
+            )
+        ]
+        for social_dork in [
+            f'site:instagram.com "{clean_user}"',
+            f'site:tiktok.com "@{clean_user}"',
+            f'site:snapchat.com/add "{clean_user}"',
+            f'site:pinterest.com "{clean_user}"',
+            f'site:strava.com/athletes "{clean_user}"',
+        ]:
+            queries.append(
+                SearchQuery.create(
+                    investigation_id=inv.id,
+                    query_text=social_dork,
+                    query_type=QueryType.FREETEXT,
+                    provider=self.discovery.adapters[0].name,
+                    depth_level=1,
+                )
+            )
+
+        for q in queries:
+            try:
+                discovered = await self.discovery.execute_query(q, max_results=10)
+                new_urls.extend(discovered)
+            except Exception as e:
+                logger.warning("Pivot query error for '%s': %s", q.query_text, e)
+
+        # 3. Collect, Filter & Entity Resolve the new URLs
+        collected_docs: list[CollectedDocument] = []
+        for url_rec in new_urls:
+            doc = await self.collection.collect_url(url_rec)
+            if doc:
+                collected_docs.append(doc)
+
+        filtered_docs = []
+        for doc in collected_docs:
+            url_rec = await self.url_repo.get(doc.url_id)
+            if not url_rec:
+                continue
+            if doc.encrypted_path:
+                raw_bytes = self.encryptor.decrypt_document(Path(doc.encrypted_path), inv.id)
+                extracted = self.collection.extract_text(raw_bytes, doc.content_type or "")
+                filter_res = await self.filtering.filter_document(doc, inv, extracted.text)
+                if filter_res.passed:
+                    filtered_docs.append(doc)
+                    signals = self.entity_resolution.extract_signals_from_text(
+                        extracted.text, url_rec.url, doc.id
+                    )
+                    if signals:
+                        await self.entity_resolution.resolve_target_identity(inv, signals)
+
+        # Record alias identity & relationship link
+        alias_ident = Identity.create(
+            investigation_id=inv.id,
+            identity_type=IdentityType.USERNAME,
+            canonical_value=clean_user,
+            display_name=f"@{clean_user}",
+            is_target=False,
+            confidence=0.85,
+            confidence_explanation=f"Pivoted alias: {rationale}",
+            verification_status=VerificationStatus.LIKELY,
+        )
+        await self.identity_repo.create(alias_ident)
+
+        # Link to target identity
+        all_idents = await self.identity_repo.list_by_investigation(inv.id)
+        target_ident = next((i for i in all_idents if i.is_target), None)
+        if target_ident:
+            link = IdentityLink.create(
+                investigation_id=inv.id,
+                identity_a_id=target_ident.id,
+                identity_b_id=alias_ident.id,
+                link_type=LinkType.ALIAS,
+                confidence=0.80,
+                evidence_summary=rationale,
+            )
+            await self.identity_repo.create_link(link)
+
+        return {
+            "pivoted_username": clean_user,
+            "urls_discovered": len(new_urls),
+            "docs_collected": len(collected_docs),
+            "alias_identity_id": alias_ident.id,
+        }
 
     async def purge_investigation(self, investigation_id: str) -> None:
         """Securely wipe all encrypted files and delete database records."""

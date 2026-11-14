@@ -95,3 +95,13 @@ export async function fetchResources(id: string): Promise<Record<string, number>
   if (!res.ok) throw new Error('Failed to fetch resource usage');
   return res.json();
 }
+
+export async function pivotAlias(invId: string, username: string, rationale?: string): Promise<any> {
+  const res = await fetch(`${BASE_URL}/investigations/${invId}/pivot`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, rationale: rationale || 'Interactive alias pivot' }),
+  });
+  if (!res.ok) throw new Error('Failed to execute alias pivot');
+  return res.json();
+}

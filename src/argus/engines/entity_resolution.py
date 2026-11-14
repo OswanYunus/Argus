@@ -27,7 +27,13 @@ from argus.core.models import (
 logger = logging.getLogger("argus.engine.entity_resolution")
 
 EMAIL_REGEX = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b")
-HANDLE_REGEX = re.compile(r"(?:@|github\.com/|linkedin\.com/in/|twitter\.com/|x\.com/)([A-Za-z0-9_-]{3,30})")
+HANDLE_REGEX = re.compile(
+    r"(?:@|github\.com/|linkedin\.com/in/|twitter\.com/|x\.com/|instagram\.com/|tiktok\.com/@|snapchat\.com/add/|pinterest\.com/|strava\.com/athletes/)([A-Za-z0-9_.-]{3,30})"
+)
+ALIAS_REGEX = re.compile(
+    r"(?:formerly|fka|prev(?:ious)?\s*(?:username|handle|name)?|changed\s*(?:from|to)?|old\s*(?:account|username|handle)?|alias)\s*[:@\s]+([A-Za-z0-9_.-]{3,30})",
+    re.IGNORECASE,
+)
 
 
 @dataclass
@@ -121,8 +127,27 @@ class EntityResolutionEngine:
                 )
             )
 
-        # 3. Cross-links to known platforms
-        if "github.com/" in text or "linkedin.com/in/" in text:
+        # 3. Former username & alias history extraction
+        for match in ALIAS_REGEX.finditer(text):
+            alias = match.group(1).lower().lstrip("@")
+            if alias in {"login", "signup", "about", "contact", "support", "privacy", "terms", "none", "null"}:
+                continue
+            start = max(0, match.start() - 60)
+            end = min(len(text), match.end() + 60)
+            context = text[start:end].replace("\n", " ").strip()
+            signals.append(
+                ExtractedSignal(
+                    signal_type=SignalType.BIO_REFERENCE,
+                    value=alias,
+                    strength=0.85,
+                    source_url=source_url,
+                    source_document_id=document_id,
+                    raw_evidence=f"Historical username/alias reference: '{context}'",
+                )
+            )
+
+        # 4. Cross-links to known platforms
+        if any(p in text for p in ("github.com/", "linkedin.com/in/", "instagram.com/", "tiktok.com/@", "snapchat.com/add/")):
             signals.append(
                 ExtractedSignal(
                     signal_type=SignalType.CROSS_LINK,
