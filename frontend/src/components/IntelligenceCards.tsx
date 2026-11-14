@@ -140,10 +140,18 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
           }
         }
       } else if (urlLower.includes('instagram.com/')) {
+        // Skip individual post/reel/stories links so only top-level profile endpoints generate cards
+        if (urlLower.includes('/p/') || urlLower.includes('/reel/') || urlLower.includes('/reels/') || urlLower.includes('/stories/')) {
+          continue;
+        }
+        const m = u.url.match(/instagram\.com\/([a-zA-Z0-9_.-]+)/i);
+        const rawHandle = m ? m[1].replace(/\/$/, '') : '';
+        if (!rawHandle || ['p', 'reel', 'reels', 'stories', 'explore', 'accounts', 'about'].includes(rawHandle.toLowerCase())) {
+          continue;
+        }
         platform = 'Instagram';
         category = 'social';
-        const m = u.url.match(/instagram\.com\/([a-zA-Z0-9_.-]+)/i);
-        handle = m ? m[1].replace(/\/$/, '') : '';
+        handle = rawHandle;
         // Extract actual location from snippet if present
         if (u.snippet && u.snippet.includes('Account based in:')) {
           const locMatch = u.snippet.match(/Account based in:\s*([^|]+)/i);
@@ -158,15 +166,23 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
         const m = u.url.match(/tiktok\.com\/@([a-zA-Z0-9_.-]+)/i);
         handle = m ? m[1].replace(/\/$/, '') : '';
       } else if (urlLower.includes('pinterest.com/')) {
+        // Skip pin links
+        if (urlLower.includes('/pin/')) continue;
+        const m = u.url.match(/pinterest\.com\/([a-zA-Z0-9_.-]+)/i);
+        const rawHandle = m ? m[1].replace(/\/$/, '') : '';
+        if (!rawHandle || ['pin', 'today', 'ideas', 'settings'].includes(rawHandle.toLowerCase())) continue;
         platform = 'Pinterest';
         category = 'social';
-        const m = u.url.match(/pinterest\.com\/([a-zA-Z0-9_.-]+)/i);
-        handle = m ? m[1].replace(/\/$/, '') : '';
+        handle = rawHandle;
       } else if (urlLower.includes('twitter.com/') || urlLower.includes('x.com/')) {
+        // Skip status / helper pages
+        if (urlLower.includes('/status/') || urlLower.includes('help.x.com') || urlLower.includes('about.x.com')) continue;
+        const m = u.url.match(/(?:twitter|x)\.com\/([a-zA-Z0-9_]+)/i);
+        const rawHandle = m ? m[1].replace(/\/$/, '') : '';
+        if (!rawHandle || ['home', 'explore', 'notifications', 'messages', 'i'].includes(rawHandle.toLowerCase())) continue;
         platform = 'X (Twitter)';
         category = 'social';
-        const m = u.url.match(/(?:twitter|x)\.com\/([a-zA-Z0-9_]+)/i);
-        handle = m ? m[1].replace(/\/$/, '') : '';
+        handle = rawHandle;
       } else if (urlLower.includes('linkedin.com/in/')) {
         platform = 'LinkedIn';
         category = 'social';
