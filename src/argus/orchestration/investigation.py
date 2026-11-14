@@ -247,7 +247,7 @@ class InvestigationManager:
                             url=ig_url,
                             source_type=SourceType.DIRECT_SEED,
                             title=f"Instagram Profile: @{clean_u}",
-                            snippet=f"Account based in: Kenya | Verified Profile",
+                            snippet=f"Instagram target profile: @{clean_u}",
                             relevance_score=0.95,
                             status=UrlStatus.COLLECTED,
                         )
@@ -499,7 +499,7 @@ class InvestigationManager:
                 url=ig_url,
                 source_type=SourceType.DIRECT_SEED,
                 title=f"Instagram Profile: @{clean_user}",
-                snippet=f"Account based in: Kenya | Pivoted former username: {rationale}",
+                snippet=f"Pivoted Instagram profile: @{clean_user} | {rationale}",
                 relevance_score=0.95,
                 status=UrlStatus.COLLECTED,
             )

@@ -49,7 +49,7 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
   const [pivotingHandle, setPivotingHandle] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // 1. Gather all verified or tracked handles across target and linked aliases
+  // 1. Gather all tracked handles across target and verified linked aliases
   const getTrackedUsernames = (): string[] => {
     const handleSet = new Set<string>();
 
@@ -81,36 +81,24 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
 
   const trackedUsernames = getTrackedUsernames();
 
-  // Helper: compute past Instagram usernames specifically
+  // Helper: Get real former/associated usernames for Instagram (from verified aliases and bio signals only - NO guessing)
   const getInstagramPastUsernames = (currentHandle: string): string[] => {
     const past = new Set<string>();
     const cleanCurrent = currentHandle.toLowerCase();
 
-    // Other known handles in the investigation are considered former handles
-    for (const u of trackedUsernames) {
-      if (u.toLowerCase() !== cleanCurrent) {
-        past.add(u);
+    // Actual linked alias identities recorded in the investigation database
+    for (const ident of identities) {
+      if (ident.canonical_value) {
+        const val = ident.canonical_value.trim().replace(/^@/, '').toLowerCase();
+        if (val && val !== cleanCurrent && !ident.is_target) {
+          past.add(val);
+        }
       }
     }
 
-    // Historical handle permutations for Instagram (e.g. oswanyunus <-> oswan_yunus)
-    if (cleanCurrent === 'oswanyunus') {
-      past.add('oswan_yunus');
-    } else if (cleanCurrent === 'oswan_yunus') {
-      past.add('oswanyunus');
-    } else {
-      if (cleanCurrent.includes('_')) {
-        past.add(cleanCurrent.replace(/_/g, ''));
-        past.add(cleanCurrent.replace(/_/g, '-'));
-      } else {
-        const noDelims = cleanCurrent.replace(/[-_.]/g, '');
-        if (noDelims && noDelims !== cleanCurrent) past.add(noDelims);
-      }
-    }
-
-    // Any bio reference signals
+    // Extracted signals with verified provenance (e.g. bio references like "formerly @old_handle")
     for (const s of signals) {
-      if (s.signal_type === 'bio_reference' || s.signal_type === 'username_match') {
+      if (s.signal_type === 'bio_reference' || s.signal_type === 'alias_match') {
         const cleanVal = s.signal_value.toLowerCase().replace(/^@/, '');
         if (cleanVal && cleanVal !== cleanCurrent) {
           past.add(cleanVal);
@@ -118,10 +106,10 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
       }
     }
 
-    return Array.from(past).slice(0, 4);
+    return Array.from(past);
   };
 
-  // 2. Parse ONLY profiles that have been FOUND or VERIFIED
+  // 2. Parse ONLY profiles that have been FOUND or VERIFIED by probes/discovery
   const parseAssets = (): ParsedPlatformAsset[] => {
     // Map keyed by `${platform.toLowerCase()}:${handle.toLowerCase()}`
     const cardMap = new Map<string, ParsedPlatformAsset>();
@@ -144,25 +132,26 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
         category = 'gaming';
         const m = u.url.match(/chess\.com\/member\/([a-zA-Z0-9_.-]+)/i);
         handle = m ? m[1].replace(/\/$/, '') : '';
-        // Extract country from snippet if present (e.g. "Location: Country: Kenya (KE)")
+        // Extract real country from Chess.com probe response
         if (u.snippet) {
           const locMatch = u.snippet.match(/Location:\s*([^|]+)/i) || u.snippet.match(/Country:\s*([^|]+)/i);
           if (locMatch) {
             location = locMatch[1].trim();
           }
         }
-        if (!location) location = 'Kenya (KE)';
       } else if (urlLower.includes('instagram.com/')) {
         platform = 'Instagram';
         category = 'social';
         const m = u.url.match(/instagram\.com\/([a-zA-Z0-9_.-]+)/i);
         handle = m ? m[1].replace(/\/$/, '') : '';
-        // Extract location
+        // Extract actual location from snippet if present
         if (u.snippet && u.snippet.includes('Account based in:')) {
           const locMatch = u.snippet.match(/Account based in:\s*([^|]+)/i);
           if (locMatch) location = locMatch[1].trim();
+        } else if (u.snippet && u.snippet.includes('Location:')) {
+          const locMatch = u.snippet.match(/Location:\s*([^|]+)/i);
+          if (locMatch) location = locMatch[1].trim();
         }
-        if (!location) location = 'Kenya';
       } else if (urlLower.includes('github.com/')) {
         platform = 'GitHub';
         category = 'code';
@@ -213,21 +202,6 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
         category = 'code';
         const m = u.url.match(/keybase\.io\/([a-zA-Z0-9_.-]+)/i);
         handle = m ? m[1].replace(/\/$/, '') : '';
-      } else if (urlLower.includes('tiktok.com/@')) {
-        platform = 'TikTok';
-        category = 'social';
-        const m = u.url.match(/tiktok\.com\/@([a-zA-Z0-9_.-]+)/i);
-        handle = m ? m[1].replace(/\/$/, '') : '';
-      } else if (urlLower.includes('pinterest.com/')) {
-        platform = 'Pinterest';
-        category = 'social';
-        const m = u.url.match(/pinterest\.com\/([a-zA-Z0-9_.-]+)/i);
-        handle = m ? m[1].replace(/\/$/, '') : '';
-      } else if (urlLower.includes('snapchat.com/add/')) {
-        platform = 'Snapchat';
-        category = 'social';
-        const m = u.url.match(/snapchat\.com\/add\/([a-zA-Z0-9_.-]+)/i);
-        handle = m ? m[1].replace(/\/$/, '') : '';
       } else {
         // Discovered independent web asset (personal blog, website, etc.)
         try {
@@ -239,8 +213,9 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
         }
       }
 
-      // If a handle couldn't be extracted, fallback to tracked username
-      const cleanHandle = handle || (trackedUsernames[0] || 'target');
+      if (!platform) continue;
+
+      const cleanHandle = handle || (trackedUsernames[0] || '');
       const lookupKey = `${platform.toLowerCase()}:${cleanHandle.toLowerCase()}`;
 
       // Deduplication: exactly ONE card per platform & handle!
@@ -266,12 +241,12 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
           status: 'verified',
           subUrlsCount: 1,
           pastUsernames: platform === 'Instagram' ? getInstagramPastUsernames(cleanHandle) : [],
-          relevance: u.relevance_score || 0.92,
+          relevance: u.relevance_score || 0.95,
         });
       }
     }
 
-    // Step B: Ensure the user's Instagram profile exists if an Instagram handle was given/targeted
+    // Step B: Ensure the user's targeted Instagram profile exists if an Instagram username was provided
     for (const u of trackedUsernames) {
       const igKey = `instagram:${u.toLowerCase()}`;
       if (!cardMap.has(igKey)) {
@@ -282,8 +257,7 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
           handle: `@${u}`,
           profileUrl: `https://www.instagram.com/${u}/`,
           title: `Instagram Profile (@${u})`,
-          snippet: 'Active Instagram account verified from investigation seed.',
-          location: 'Kenya',
+          snippet: 'Target Instagram account identified from investigation seed.',
           status: 'verified',
           subUrlsCount: 1,
           pastUsernames: getInstagramPastUsernames(u),
@@ -297,7 +271,7 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
 
   const allAssets = parseAssets();
 
-  // 3. Filter assets by category & keyword
+  // 3. Filter assets by category & search query
   const filteredAssets = allAssets.filter((a) => {
     const matchesCategory = activeCategory === 'all' || a.category === activeCategory;
     const matchesQuery =
@@ -494,7 +468,7 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
                     </div>
                   </div>
 
-                  {/* Location display for Instagram & Chess.com */}
+                  {/* Location display ONLY when verified from live data */}
                   {asset.location && (
                     <div
                       style={{
@@ -512,8 +486,8 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
                     </div>
                   )}
 
-                  {/* Snippet / Metadata preview */}
-                  {asset.snippet && !asset.snippet.startsWith('Account based in') && (
+                  {/* Snippet / Bio Preview */}
+                  {asset.snippet && (
                     <div
                       style={{
                         fontSize: '12px',
@@ -531,8 +505,8 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
                     </div>
                   )}
 
-                  {/* INSTAGRAM ONLY: FORMER / PAST USERNAMES (osintsearch.org model) */}
-                  {isInstagram && asset.pastUsernames.length > 0 && (
+                  {/* INSTAGRAM ONLY: FORMER USERNAMES (Strictly on Instagram, only actual recorded aliases) */}
+                  {isInstagram && (
                     <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--line)' }}>
                       <div
                         style={{
@@ -551,38 +525,44 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
                         Former Instagram Usernames:
                       </div>
 
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                        {asset.pastUsernames.map((prevU) => {
-                          const isCurrentPivoting = pivotingHandle === prevU;
-                          return (
-                            <button
-                              key={prevU}
-                              onClick={() => handleExecutePivot(prevU)}
-                              disabled={isPivoting}
-                              title={`Click to search across platforms for former username @${prevU}`}
-                              className="btn"
-                              style={{
-                                padding: '3px 9px',
-                                fontSize: '11px',
-                                fontFamily: 'var(--font-mono)',
-                                color: isCurrentPivoting ? 'var(--brass)' : 'var(--paper)',
-                                background: isCurrentPivoting ? 'var(--brass-dim)' : 'transparent',
-                                borderColor: isCurrentPivoting ? 'var(--brass)' : 'var(--line-strong)',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                              }}
-                            >
-                              {isCurrentPivoting ? (
-                                <RefreshCw size={10} className="animate-spin" />
-                              ) : (
-                                <span style={{ color: 'var(--brass)' }}>⤿</span>
-                              )}
-                              @{prevU}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      {asset.pastUsernames.length > 0 ? (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {asset.pastUsernames.map((prevU) => {
+                            const isCurrentPivoting = pivotingHandle === prevU;
+                            return (
+                              <button
+                                key={prevU}
+                                onClick={() => handleExecutePivot(prevU)}
+                                disabled={isPivoting}
+                                title={`Click to search across platforms for former username @${prevU}`}
+                                className="btn"
+                                style={{
+                                  padding: '3px 9px',
+                                  fontSize: '11px',
+                                  fontFamily: 'var(--font-mono)',
+                                  color: isCurrentPivoting ? 'var(--brass)' : 'var(--paper)',
+                                  background: isCurrentPivoting ? 'var(--brass-dim)' : 'transparent',
+                                  borderColor: isCurrentPivoting ? 'var(--brass)' : 'var(--line-strong)',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                {isCurrentPivoting ? (
+                                  <RefreshCw size={10} className="animate-spin" />
+                                ) : (
+                                  <span style={{ color: 'var(--brass)' }}>⤿</span>
+                                )}
+                                @{prevU}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '11px', color: 'var(--faint)', fontStyle: 'italic', fontFamily: 'var(--font-mono)' }}>
+                          None recorded on profile
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -604,7 +584,7 @@ export const IntelligenceCards: React.FC<IntelligenceCardsProps> = ({
                     {asset.category}
                   </span>
                   <span>
-                    {isChess ? 'Chess.com Verified Player' : isInstagram ? 'Instagram Verified' : `${asset.subUrlsCount} endpoint indexed`}
+                    {isChess ? 'Chess.com Verified Player' : isInstagram ? 'Instagram Profile' : `${asset.subUrlsCount} endpoint indexed`}
                   </span>
                 </div>
               </div>
